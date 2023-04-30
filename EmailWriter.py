@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     # Print the available actions and prompt the user to choose one
     while True:
-        action = input("Choose an action - A) send the email, B) modify the email, C) delete the email, D) redisplay the email: ")
+        action = input("Choose an action - A) send the email, B) modify the email, C) clear the email, D) redisplay the email: ")
 
         if action.lower() == 'a':
             # Send the email
@@ -105,7 +105,7 @@ if __name__ == "__main__":
                 original_email_content = email_content
         elif action.lower() == 'c':
             # Delete the email
-            print("Email deleted.")
+            print("Email cleared.")
             break
         elif action.lower() == 'd':
             # Display email to console
