@@ -1,62 +1,79 @@
+from email.mime.text import MIMEText
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+
 import os
-import json
+import base64
 import openai
-from langchain.output_parsers import CommaSeparatedListOutputParser
-from langchain.prompts import PromptTemplate, ChatPromptTemplate, HumanMessagePromptTemplate
-from langchain.chat_models import ChatOpenAI
-from langchain.schema import (
-    AIMessage,
-    HumanMessage,
-    SystemMessage
-)
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+from googleapiclient.discovery import build
+from email.mime.text import MIMEText
 
-def router(event, context):
-    payload = json.loads(event["body"])
-    api_key = payload["openai_api_key"]
+def generate_email(prompt, api_key):
+    creds = None
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', ['https://www.googleapis.com/auth/gmail.compose'])
 
-    # Prepend a index to each text in the list
-    payload["messages"] = [f"{i+1}. {text}" for i, text in enumerate(payload["messages"])]
-    text_list = "\n".join(payload["messages"])
-    preference = payload["preference"]
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                os.environ.get('CREDENTIALS_FILE'), ['https://www.googleapis.com/auth/gmail.compose'])
+            creds = flow.run_local_server(port=0)
 
-    output_parser = CommaSeparatedListOutputParser()
-    format_instructions = output_parser.get_format_instructions()
-    model = ChatOpenAI(model="gpt-3.5-turbo", model_kwargs={'temperature': 0}, openai_api_key=api_key)
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
 
-    messages = [
-        SystemMessage(content="You are a reading assistant that classifies whether each item in a list fits user preference. The labels you can use are yes or no."),
-        HumanMessage(content="Here is my preference:"),
-        HumanMessage(content=preference),
-        HumanMessage(content="Here is a list of texts. Please indicate with a 'yes' or 'no' whether I would like to read each item in the list based on the above preference."),
-        HumanMessage(content=text_list),
-        HumanMessage(content=format_instructions),
-    ]
+    # Set up OpenAI API client
+    openai.api_key = api_key
+    model_engine = "text-davinci-002"
 
-    output = model(messages)
-    # print("MODEL OUTPUT", output.content)
-    output = output_parser.parse(output.content)
-    output = [True if x.lower() == "yes" else False for x in output]
-    retval = json.dumps(output)
-    del model # make sure to destroy the api key.
+    # Generate email with OpenAI GPT-3
+    response = openai.Completion.create(
+        engine=model_engine,
+        prompt=prompt,
+        max_tokens=1024,
+        n=1,
+        stop=None,
+        temperature=0.7,
+    )
 
-    return retval
+    # Extract email from OpenAI response
+    try:
+        email = response.choices[0].text.strip()
+    except IndexError:
+        email = None
+
+    return email
+
 
 if __name__ == "__main__":
-    tweets = """Max Tegmark@tegmark·4h·Only 4% of Americans strongly disagree with the proposed pause on AI more powerful than #GPT4, so loud pause critics linked to big tech aren\'t representative. Upton Sinclair said "It is difficult to get a man to understand something, when his salary depends on his not…\xa0Show more586628142.1K
-                Andrew Carr@andrew_n_carr·46mWow the new Segment Anything model from Meta is pretty amazingread image descriptionALT8516
-                The Daily Show RetweetedJordan Klepper@jordanklepper·4hA curious public demands more volleyball clarity.Quote TweetThe Daily Show@TheDailyShow·5h.@jordanklepper got to ask George Santos a few important questions at Trump\'s arraignment.491251,494221.6K
-                NYU AI School \'23@nyuaischool·21hLast 2 days to apply to the NYU AI School 2023 for a unique, in-person experience with leading researchers from NYU, Google, and more! We\'re working on rolling admissions so if you\'re waiting to submit your application we encourage you to do it soon :)nyu-mll.github.ioNYU AI SchoolNYU AI School3161,804"""
+    prompt = "Compose an email to send to your professor explaining that you will be unable to attend class next week due to a family emergency."
+    api_key = os.environ.get("OPENAI_API_KEY")
 
-    tweets = list(map(lambda x: x.strip(), tweets.split("\n")))
-    f=open('api_key.json')
-    data = json.load(f)
-    api_key = data['key'] if os.environ.get("API_KEY") is None else os.environ["API_KEY"]
-    
-    event = {
-        "body": json.dumps({
-            "messages": tweets,
-            "preference": "I like reading about adademic research.",
-            "openai_api_key": api_key
-        })
-    }
-    print(router(event, None))
+    if api_key is None:
+        print("API key not found. Please set the 'OPENAI_API_KEY' environment variable.")
+        exit(1)
+
+    # Generate email content with OpenAI
+    email_content = generate_email(prompt, api_key)
+
+    # Create Gmail API client and authenticate
+    credentials = Credentials.from_authorized_user_file('token.json', ['https://www.googleapis.com/auth/gmail.compose'])
+    service = build('gmail', 'v1', credentials=credentials)
+
+    # Construct the email message
+    message = MIMEText(email_content)
+    message['to'] = 'recipient@example.com'
+    message['subject'] = 'Absent from Class Next Week'
+
+    # Send the email
+    create_message = {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
+    sent_message = service.users().messages().send(userId="me", body=create_message).execute()
+
+    print("Message sent to %s. Message Id: %s" % (message['to'], sent_message['id']))
+
+
