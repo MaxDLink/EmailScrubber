@@ -4,6 +4,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 
+import re
 import os
 import base64
 import openai
@@ -96,13 +97,11 @@ if __name__ == "__main__":
         elif action.lower() == 'b':
             # Modify the email
             print("Current email content:\n%s\n" % email_content)
-            while True:
-                modification = input("Enter the modification to make (or type 'exit' to cancel): ")
-                if modification.lower() == 'exit':
-                    break
-                email_content = original_email_content.replace(prompt, modification)
-                print("Modified email content:\n%s\n" % email_content)
-                original_email_content = email_content
+            phrase = input("Enter the phrase to replace: ")
+            replacement = input("Enter the replacement phrase: ")
+            email_content = re.sub(phrase, replacement, email_content)
+            print("Modified email content:\n%s\n" % email_content)
+
         elif action.lower() == 'c':
             # Delete the email
             print("Email cleared.")
