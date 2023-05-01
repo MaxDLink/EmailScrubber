@@ -37,9 +37,9 @@ def generate_email(prompt, api_key):
         return None
 
     return email
-
-
+   
 if __name__ == "__main__":
+
     prompt = input("Enter a prompt for the email: ")
     api_key = os.environ.get("OPENAI_API_KEY")
 
@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
     # Print the available actions and prompt the user to choose one
     while True:
-        action = input("Choose an action - A) send the email, B) modify the email, C) clear the email, D) redisplay the email: ")
+        action = input("Choose an action - A) send the email, B) modify the email, C) clear the email, D) redisplay the email, Q) Quit: ")
 
         if action.lower() == 'a':
             # Send the email
@@ -103,12 +103,23 @@ if __name__ == "__main__":
             print("Modified email content:\n%s\n" % email_content)
 
         elif action.lower() == 'c':
-            # Delete the email
-            print("Email cleared.")
-            break
+        # Regenerate email content
+            print("Clearing Email Content")
+            prompt = input("Enter a prompt for the email: ")
+            email_content = generate_email(prompt, api_key)
+            if email_content is None:
+                print("Unable to generate email content.")
+                exit(1)
+            print("New email content:\n%s\n" % email_content)
+            original_email_content = email_content
+
         elif action.lower() == 'd':
             # Display email to console
             print("Current email content:\n%s\n" % email_content)
+        elif action.lower() == 'q':
+            # Delete the email
+            print("Quitting")
+            break; #reprompts 
         else:
             print("Invalid action. Please choose A, B, C, or D.")
 
