@@ -9,11 +9,14 @@ import os
 import base64
 import openai
 
+# Define model engine
+model_engine = "text-davinci-002"
+
 
 def generate_email(prompt, api_key):
     # Set up OpenAI API client
     openai.api_key = api_key
-    model_engine = "text-davinci-002"
+    #model_engine = "text-davinci-002"
 
     # Generate email with OpenAI GPT-3
     try:
@@ -102,13 +105,47 @@ if __name__ == "__main__":
             break
 
 
-        elif action.lower() == 'b':
+        if action.lower() == 'b':
             # Modify the email
             print("Current email content:\n%s\n" % email_content)
-            phrase = input("Enter the phrase to replace: ")
-            replacement = input("Enter the replacement phrase: ")
-            email_content = re.sub(phrase, replacement, email_content)
-            print("Modified email content:\n%s\n" % email_content)
+            prompt_continuation = input("Do you want to generate a continuation? (y/n): ")
+            if prompt_continuation.lower() == 'y':
+                # Generate a continuation with OpenAI
+                try:
+                    response = openai.Completion.create(
+                        engine=model_engine,
+                        prompt=original_email_content,
+                        max_tokens=1024,
+                        n=1,
+                        stop=None,
+                        temperature=0.7,
+                    )
+                except openai.error.OpenAIError:
+                    print("Error generating continuation with OpenAI.")
+                    continue
+
+                # Extract email from OpenAI response
+                try:
+                    continuation = response.choices[0].text.strip()
+                except IndexError:
+                    print("Error extracting continuation from OpenAI response.")
+                    continue
+
+                # Print the continuation to the console
+                print("Generated continuation:\n%s\n" % continuation)
+
+                # Prompt the user to edit the continuation
+                edit_continuation = input("Do you want AgentGPT to modify the continuation based on your prompt? (y/n): ")
+                if edit_continuation.lower() == 'y':
+                    prompt = input("Please enter a prompt for AgentGPT to modify the continuation: ")
+                    edited_continuation = re.sub(prompt, "", continuation)
+                    email_content = edited_continuation
+                    print("Modified email content:\n%s\n" % email_content)
+                else:
+                    print("Continuation not edited. Using original email content.")
+            else:
+                continue
+
 
         elif action.lower() == 'c':
         # Regenerate email content
