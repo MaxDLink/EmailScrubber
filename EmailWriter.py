@@ -100,7 +100,7 @@ if __name__ == "__main__":
             sent_message = service.users().messages().send(userId="me", body=create_message).execute()
             print("Message sent to %s. Message Id: %s" % (to_address, sent_message['id']))
             break
-
+            #TODO - Does not send the modified version of the email. Only sends original. 
 
         elif action.lower() == 'b':
             # Modify the email
