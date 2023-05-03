@@ -95,12 +95,17 @@ if __name__ == "__main__":
         action = input("Choose an action - A) send the email, B) modify the email, C) clear the email, D) redisplay the email, Q) Quit: ")
 
         if action.lower() == 'a':
+            # Set the email content to the modified email_content (if it was modified)
+            message.set_payload(payload=email_content)
+
+            print("\nMessage Body: " + str(message.get_payload()))
             #Prompt the user for the subject header 
             subject = input("Enter the subject header: ")
             message['subject'] = subject
             # Prompt the user to enter the email address
             to_address = input("Enter the email address to send the email to: ")
             message['to'] = to_address
+            
             # Send the email to the entered email address
             message['to'] = to_address
             create_message = {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
@@ -108,49 +113,18 @@ if __name__ == "__main__":
             print("Message sent to %s. Message Id: %s" % (to_address, sent_message['id']))
             break
 
-
         if action.lower() == 'b':
             # Modify the email
             print("Current email content:\n%s\n" % email_content)
-            prompt_continuation = input("Do you want to generate a continuation? (y/n): ")
-            if prompt_continuation.lower() == 'y':
-                # Generate a continuation with OpenAI
-                try:
-                    response = openai.Completion.create(
-                        engine=model_engine,
-                        prompt=original_email_content,
-                        max_tokens=1024,
-                        n=1,
-                        stop=None,
-                        temperature=0.7,
-                    )
-                except openai.error.OpenAIError:
-                    print("Error generating continuation with OpenAI.")
-                    continue
 
-                # Extract email from OpenAI response
-                try:
-                    continuation = response.choices[0].text.strip()
-                    print("Continuation From OpenAI Response:\n%s\n" % continuation)
+            # Prompt the user to make changes to the email
+            suggestedChanges = input("\nWhat would you like to change about this email? ")
 
-                except IndexError:
-                    print("Error extracting continuation from OpenAI response.")
-                    continue
+            # Regenerate initial email content with user suggested changes 
+            # Update the email content with the user's changes
+            email_content = generate_email("Take this email: " + email_content + "\n and change it to: " + suggestedChanges, api_key)
+            print("Modified email content:\n%s\n" % email_content)
 
-                # Print the continuation to the console
-                print("Generated continuation:\n%s\n" % continuation)
-
-                # Prompt the user to edit the continuation
-                edit_continuation = input("Do you want AgentGPT to modify the continuation based on your prompt? (y/n): ")
-                if edit_continuation.lower() == 'y':
-                    prompt = input("Please enter a prompt for AgentGPT to modify the continuation: ")
-                    edited_continuation = re.sub(prompt, "", continuation)
-                    email_content = edited_continuation
-                    print("Modified email content:\n%s\n" % email_content)
-                else:
-                    print("Continuation not edited. Using original email content.")
-            else:
-                continue
 
 
         elif action.lower() == 'c':
@@ -162,7 +136,6 @@ if __name__ == "__main__":
                 print("Unable to generate email content.")
                 exit(1)
             print("New email content:\n%s\n" % email_content)
-            original_email_content = email_content
 
         elif action.lower() == 'd':
             # Display email to console
