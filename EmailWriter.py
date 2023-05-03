@@ -8,6 +8,7 @@ import re
 import os
 import base64
 import openai
+import configparser #reads in api key from config.ini file 
 
 # Define model engine
 model_engine = "text-davinci-002"
@@ -44,7 +45,11 @@ def generate_email(prompt, api_key):
 if __name__ == "__main__":
 
     prompt = input("Enter a prompt for the email: ")
-    api_key = os.environ.get("OPENAI_API_KEY")
+    #api_key = os.environ.get("OPENAI_API_KEY")
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    api_key = config.get('openai', 'openai_api_key')
+    print(api_key)
 
     if api_key is None:
         print("API key not found. Please set the 'OPENAI_API_KEY' environment variable.")
