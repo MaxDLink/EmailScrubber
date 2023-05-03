@@ -108,52 +108,18 @@ if __name__ == "__main__":
             print("Message sent to %s. Message Id: %s" % (to_address, sent_message['id']))
             break
 
-
         if action.lower() == 'b':
             # Modify the email
             print("Current email content:\n%s\n" % email_content)
-            prompt_continuation = input("Do you want to generate a continuation? (y/n): ")
-            if prompt_continuation.lower() == 'y':
-                # Generate a continuation with OpenAI
-                try:
-                    response = openai.Completion.create(
-                        engine=model_engine,
-                        prompt=original_email_content,
-                        max_tokens=1024,
-                        n=1,
-                        stop=None,
-                        temperature=0.7,
-                    )
-                except openai.error.OpenAIError:
-                    print("Error generating continuation with OpenAI.")
-                    continue
 
-                # Extract email from OpenAI response
-                try:
-                    continuation = response.choices[0].text.strip()
-                    print("Continuation From OpenAI Response:\n%s\n" % continuation)
+            # Prompt the user to make changes to the email
+            suggestedChanges = input("\nWhat would you like to change about this email? ")
 
-                except IndexError:
-                    print("Error extracting continuation from OpenAI response.")
-                    continue
+            # Regenerate initial email content with user suggested changes 
+            # Update the email content with the user's changes
+            email_content = generate_email("Take this email: " + email_content + "\n and change it to: " + suggestedChanges, api_key)
+            print("Modified email content:\n%s\n" % email_content)
 
-                # Print the continuation to the console
-                print("Generated continuation:\n%s\n" % continuation)
-
-                # Prompt the user to edit the continuation
-                edit_continuation = input("Do you want AgentGPT to modify the continuation based on your prompt? (y/n): ")
-                if edit_continuation.lower() == 'y':
-                    prompt = "Take this: " + email_content + " and " #getting prompt read to take in user adjustments 
-                    prompt += input("Take this email: " + email_content + " and ")
-                    #edited_continuation = re.sub(prompt, "", continuation)
-                    # Rgenerates initial email content with user's new suggestions
-                    email_content = generate_email(prompt, api_key)
-                    #email_content = edited_continuation
-                    print("Modified email content:\n%s\n" % email_content)
-                else:
-                    print("Continuation not edited. Using original email content.")
-            else:
-                continue
 
 
         elif action.lower() == 'c':
