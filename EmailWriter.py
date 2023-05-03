@@ -3,7 +3,11 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+from oauth2client import file, client, tools
 
+import ast
+import json
 import re
 import os
 import base64
@@ -48,8 +52,30 @@ if __name__ == "__main__":
   print("Welcome to EmailHelper!\n")
   userDecision = input("Would you like to A) Organize your email inbox, B) Write an email, or Q) Quit? ")
   if userDecision.lower() == 'a':
+        
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    
+    # Retrieve the credentials from the configuration file
+    creds_info_str = config['DEFAULT']['gmail_cred_file']
+    creds_info = ast.literal_eval(creds_info_str)
+    creds = Credentials.from_authorized_user_info(info=creds_info)
     # Organize email inbox
-    print("Organizing email inbox")
+    # Set up the credentials and build the Gmail API client
+    SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
+
+    service = build('gmail', 'v1', credentials=creds)
+
+    # Define the subject header to search for and delete
+    subject_header = input("Please enter the subject header of the email you would like deleted: ")
+
+    # Search for the message with the specified subject header
+    messages = service.users().messages().list(q=f"subject:{subject_header}").execute()
+
+    # Delete each message in the search results
+    for message in messages['messages']:
+        service.users().messages().delete(userId='me', id=message['id']).execute()
+        print(f"Message with subject header '{subject_header}' deleted.")
   elif userDecision.lower() == 'b':
         prompt = input("Enter a prompt for the email: ")
         #api_key = os.environ.get("OPENAI_API_KEY")
