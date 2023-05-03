@@ -49,7 +49,6 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read('config.ini')
     api_key = config.get('openai', 'openai_api_key')
-    print(api_key)
 
     if api_key is None:
         print("API key not found. Please set the 'OPENAI_API_KEY' environment variable.")
