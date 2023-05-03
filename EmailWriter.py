@@ -48,8 +48,8 @@ if __name__ == "__main__":
     #api_key = os.environ.get("OPENAI_API_KEY")
     config = configparser.ConfigParser()
     config.read('config.ini')
-    api_key = config.get('openai', 'openai_api_key')
-
+    api_key = config.get('DEFAULT', 'openai_api_key')
+    credentials = config.get('DEFAULT', 'gmail_cred_file')
     if api_key is None:
         print("API key not found. Please set the 'OPENAI_API_KEY' environment variable.")
         exit(1)
