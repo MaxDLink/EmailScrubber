@@ -95,12 +95,17 @@ if __name__ == "__main__":
         action = input("Choose an action - A) send the email, B) modify the email, C) clear the email, D) redisplay the email, Q) Quit: ")
 
         if action.lower() == 'a':
+            # Set the email content to the modified email_content (if it was modified)
+            message.set_payload(payload=email_content)
+
+            print("\nMessage Body: " + str(message.get_payload()))
             #Prompt the user for the subject header 
             subject = input("Enter the subject header: ")
             message['subject'] = subject
             # Prompt the user to enter the email address
             to_address = input("Enter the email address to send the email to: ")
             message['to'] = to_address
+            
             # Send the email to the entered email address
             message['to'] = to_address
             create_message = {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
@@ -131,7 +136,6 @@ if __name__ == "__main__":
                 print("Unable to generate email content.")
                 exit(1)
             print("New email content:\n%s\n" % email_content)
-            original_email_content = email_content
 
         elif action.lower() == 'd':
             # Display email to console
