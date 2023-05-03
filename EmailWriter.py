@@ -143,9 +143,12 @@ if __name__ == "__main__":
                 # Prompt the user to edit the continuation
                 edit_continuation = input("Do you want AgentGPT to modify the continuation based on your prompt? (y/n): ")
                 if edit_continuation.lower() == 'y':
-                    prompt = input("Please enter a prompt for AgentGPT to modify the continuation: ")
-                    edited_continuation = re.sub(prompt, "", continuation)
-                    email_content = edited_continuation
+                    prompt = "Take this: " + email_content + " and " #getting prompt read to take in user adjustments 
+                    prompt += input("Take this email: " + email_content + " and ")
+                    #edited_continuation = re.sub(prompt, "", continuation)
+                    # Rgenerates initial email content with user's new suggestions
+                    email_content = generate_email(prompt, api_key)
+                    #email_content = edited_continuation
                     print("Modified email content:\n%s\n" % email_content)
                 else:
                     print("Continuation not edited. Using original email content.")
