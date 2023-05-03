@@ -131,6 +131,8 @@ if __name__ == "__main__":
                 # Extract email from OpenAI response
                 try:
                     continuation = response.choices[0].text.strip()
+                    print("Continuation From OpenAI Response:\n%s\n" % continuation)
+
                 except IndexError:
                     print("Error extracting continuation from OpenAI response.")
                     continue
