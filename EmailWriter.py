@@ -49,7 +49,7 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read('config.ini')
     api_key = config.get('DEFAULT', 'openai_api_key')
-    credentials = config.get('DEFAULT', 'gmail_cred_file')
+
     if api_key is None:
         print("API key not found. Please set the 'OPENAI_API_KEY' environment variable.")
         exit(1)
@@ -73,8 +73,8 @@ if __name__ == "__main__":
         if credentials and credentials.expired and credentials.refresh_token:
             credentials.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                os.environ.get('CREDENTIALS_FILE'), ['https://www.googleapis.com/auth/gmail.compose'])
+            credentials_file = config['DEFAULT']['gmail_cred_file']
+            flow = InstalledAppFlow.from_client_secrets_file(credentials_file, ['https://www.googleapis.com/auth/gmail.compose'])
             credentials = flow.run_local_server(port=0)
 
         with open('token.json', 'w') as token:
