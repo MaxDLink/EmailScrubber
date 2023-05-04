@@ -9801,3 +9801,7 @@ env/lib/python3.10/site-packages/yarl-1.9.2.dist-info/WHEEL
 myenv/bin/python3.9
 Pipfile.lock
 Pipfile
+env/bin/python 2
+env/bin/python3 2
+env/bin/python3.9 2
+env/bin/python3.10 2
