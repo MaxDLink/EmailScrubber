@@ -5,6 +5,7 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from oauth2client import file, client, tools
+from google.oauth2.service_account import ServiceAccountCredentials
 
 import ast
 import json
@@ -13,6 +14,7 @@ import os
 import base64
 import openai
 import configparser #reads in api key from config.ini file 
+
 
 # Define model engine
 model_engine = "text-davinci-002"
@@ -52,30 +54,23 @@ if __name__ == "__main__":
   print("Welcome to EmailHelper!\n")
   userDecision = input("Would you like to A) Organize your email inbox, B) Write an email, or Q) Quit? ")
   if userDecision.lower() == 'a':
-        
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    
-    # Retrieve the credentials from the configuration file
-    creds_info_str = config['DEFAULT']['gmail_cred_file']
-    creds_info = ast.literal_eval(creds_info_str)
-    creds = Credentials.from_authorized_user_info(info=creds_info)
-    # Organize email inbox
-    # Set up the credentials and build the Gmail API client
-    SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
+        # Read the config.ini file
+        #config = configparser.ConfigParser()
+        #config.read('config.ini')
 
-    service = build('gmail', 'v1', credentials=creds)
+        # Get the path of the credentials file from the config.ini file
+        #creds_file = config.get('DEFAULT', 'gmail_cred_file')
+        #creds_file = config.get('DEFAULT', 'gmail_cred_file').strip('"')
 
-    # Define the subject header to search for and delete
-    subject_header = input("Please enter the subject header of the email you would like deleted: ")
+        # Load the credentials from the credentials file
+        #creds = Credentials.from_authorized_user_file(creds_file, ['https://www.googleapis.com/auth/gmail.modify'])
+        creds = ServiceAccountCredentials.from_json_keyfile_name('/Users/maxlink/Desktop/API Key/creds/gc.json', scopes=['https://www.googleapis.com/auth/gmail.modify'])
 
-    # Search for the message with the specified subject header
-    messages = service.users().messages().list(q=f"subject:{subject_header}").execute()
-
-    # Delete each message in the search results
-    for message in messages['messages']:
-        service.users().messages().delete(userId='me', id=message['id']).execute()
-        print(f"Message with subject header '{subject_header}' deleted.")
+        service = build('gmail', 'v1', credentials=creds)
+        subjectheader = input("Enter the subject header for email you want to delete: ")
+        query = "subject:" + subjectheader
+        result = service.users().messages().list(userId='me', q=query).execute()
+        messages = result.get('messages', [])
   elif userDecision.lower() == 'b':
         prompt = input("Enter a prompt for the email: ")
         #api_key = os.environ.get("OPENAI_API_KEY")
