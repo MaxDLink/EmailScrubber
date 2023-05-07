@@ -5,7 +5,9 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from oauth2client import file, client, tools
-from google.oauth2.service_account import ServiceAccountCredentials
+#from google.oauth2.service_account import ServiceAccountCredentials - invalid import 
+from google.oauth2 import service_account
+
 
 import ast
 import json
@@ -64,7 +66,8 @@ if __name__ == "__main__":
 
         # Load the credentials from the credentials file
         #creds = Credentials.from_authorized_user_file(creds_file, ['https://www.googleapis.com/auth/gmail.modify'])
-        creds = ServiceAccountCredentials.from_json_keyfile_name('/Users/maxlink/Desktop/API Key/creds/gc.json', scopes=['https://www.googleapis.com/auth/gmail.modify'])
+        #creds = ServiceAccountCredentials.from_json_keyfile_name('/Users/maxlink/Desktop/API Key/creds/gc.json', scopes=['https://www.googleapis.com/auth/gmail.modify'])
+        creds = service_account.Credentials.from_json_keyfile_name('/Users/maxlink/Desktop/API Key/creds/gc.json', scopes=['https://www.googleapis.com/auth/gmail.modify'])
 
         service = build('gmail', 'v1', credentials=creds)
         subjectheader = input("Enter the subject header for email you want to delete: ")
@@ -101,7 +104,9 @@ if __name__ == "__main__":
             if credentials and credentials.expired and credentials.refresh_token:
                 credentials.refresh(Request())
             else:
-                credentials_file = config['DEFAULT']['gmail_cred_file']
+                #credentials_file = config['DEFAULT']['gmail_cred_file']
+                credentials_file = config['DEFAULT']['gmail_cred_file'].strip('"')
+                
                 flow = InstalledAppFlow.from_client_secrets_file(credentials_file, ['https://www.googleapis.com/auth/gmail.compose'])
                 credentials = flow.run_local_server(port=0)
 
