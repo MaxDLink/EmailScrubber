@@ -64,14 +64,32 @@ if __name__ == "__main__":
         if userDecision.lower() == 'a': #user chooses to organize their inbox
                 print("Organizing your inbox...\n")
                 # Load the credentials from the credentials file. Handles the Oath2 flow
+                creds = None  # Initialize creds to None to avoid creds not defined error 
+
+                # Read the config.ini file
+                config = configparser.ConfigParser()
+                config.read('config.ini')
+                credentials_file = config.get('DEFAULT', 'gmail_cred_file')
+
                 if os.path.exists('token.json'):
+                    #creds = Credentials.from_authorized_user_file('token.json', ['https://www.googleapis.com/auth/gmail.modify'])
+                    #creds = Credentials.from_authorized_user_file('token.json', ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.settings.basic'])
                     creds = Credentials.from_authorized_user_file('token.json', ['https://www.googleapis.com/auth/gmail.modify'])
 
                 if not creds or not creds.valid:
                     if creds and creds.expired and creds.refresh_token:
                         creds.refresh(Request())
                     else:
-                        flow = InstalledAppFlow.from_client_secrets_file(credentials_file, ['https://www.googleapis.com/auth/gmail.modify'])
+                        #flow = InstalledAppFlow.from_client_secrets_file(credentials_file, ['https://www.googleapis.com/auth/gmail.modify'])
+                        #flow = InstalledAppFlow.from_client_secrets_file(credentials_file, ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.settings.basic'])
+                        #flow = InstalledAppFlow.from_client_secrets_file(credentials_file, ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.modify'])
+                        flow = InstalledAppFlow.from_client_secrets_file(credentials_file, [
+                            'https://www.googleapis.com/auth/gmail.modify'
+                        ])
+
+
+
+
                         creds = flow.run_local_server(port=0)
 
                     with open('token.json', 'w') as token:
@@ -84,6 +102,18 @@ if __name__ == "__main__":
                 query = "subject:" + subjectheader
                 result = service.users().messages().list(userId='me', q=query).execute()
                 messages = result.get('messages', [])
+
+                #delete the email with the chosen subject header 
+                if not messages:
+                    print("No emails found with the subject header:", subjectheader)
+
+                else:
+                    for message in messages:
+                        message_id = message['id']
+                        service.users().messages().delete(userId='me', id=message_id).execute()
+                        print(f"Deleted email with ID: {message_id}")
+
+                    print(f"Deleted {len(messages)} email(s) with the subject header: {subjectheader}")
 
 
         elif userDecision.lower() == 'b':  # user chooses to write an email
