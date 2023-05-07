@@ -58,9 +58,11 @@ if __name__ == "__main__":
 
     while True: 
         print("Welcome to EmailHelper!\n")
-        userDecision = input("Would you like to A) Organize your email inbox, B) Write an email, or Q) Quit? ")
-        if userDecision.lower() == 'a': #user chooses to organize their inbox
 
+        userDecision = input("Would you like to A) Organize your email inbox, B) Write an email, or Q) Quit? ")
+
+        if userDecision.lower() == 'a': #user chooses to organize their inbox
+                print("Organizing your inbox...\n")
                 # Load the credentials from the credentials file. Handles the Oath2 flow
                 if os.path.exists('token.json'):
                     creds = Credentials.from_authorized_user_file('token.json', ['https://www.googleapis.com/auth/gmail.modify'])
@@ -75,11 +77,14 @@ if __name__ == "__main__":
                     with open('token.json', 'w') as token:
                         token.write(creds.to_json())
 
-                        service = build('gmail', 'v1', credentials=creds)
-                        subjectheader = input("Enter the subject header for email you want to delete: ")
-                        query = "subject:" + subjectheader
-                        result = service.users().messages().list(userId='me', q=query).execute()
-                        messages = result.get('messages', [])
+                service = build('gmail', 'v1', credentials=creds)
+
+                #prompt the user for the subject header for which email to delete 
+                subjectheader = input("Enter the subject header for email you want to delete: ")
+                query = "subject:" + subjectheader
+                result = service.users().messages().list(userId='me', q=query).execute()
+                messages = result.get('messages', [])
+
 
         elif userDecision.lower() == 'b':  # user chooses to write an email
                 prompt = input("Enter a prompt for the email: ")
