@@ -75,16 +75,14 @@ if __name__ == "__main__":
                     #creds = Credentials.from_authorized_user_file('token.json', ['https://www.googleapis.com/auth/gmail.modify'])
                     #creds = Credentials.from_authorized_user_file('token.json', ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.settings.basic'])
                     creds = Credentials.from_authorized_user_file('token.json', ['https://www.googleapis.com/auth/gmail.modify'])
+                  
 
                 if not creds or not creds.valid:
                     if creds and creds.expired and creds.refresh_token:
                         creds.refresh(Request())
                     else:
-                        #flow = InstalledAppFlow.from_client_secrets_file(credentials_file, ['https://www.googleapis.com/auth/gmail.modify'])
-                        #flow = InstalledAppFlow.from_client_secrets_file(credentials_file, ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.settings.basic'])
-                        #flow = InstalledAppFlow.from_client_secrets_file(credentials_file, ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.modify'])
                         flow = InstalledAppFlow.from_client_secrets_file(credentials_file, [
-                            'https://www.googleapis.com/auth/gmail.modify'
+                            'https://www.googleapis.com/auth/gmail.modify' #gives permission to delete emails 
                         ])
 
 
