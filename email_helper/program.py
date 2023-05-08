@@ -10,7 +10,7 @@ if __name__ == "__main__":
     while True: 
         print("Welcome to EmailHelper!\n")
 
-        userDecision = input("Would you like to A) Organize your email inbox, B) Write an email, or Q) Quit? ")
+        userDecision = input("Would you like to A) Organize your email inbox, W) Write an email, F) Forward Emails, C) Copy an email, or Q) Quit? ")
 
         if userDecision.lower() == 'a': #user chooses to organize their inbox
                 print("Organizing your inbox...\n")
@@ -26,8 +26,12 @@ if __name__ == "__main__":
 
 
 
-        elif userDecision.lower() == 'b':  # user chooses to write an email
+        elif userDecision.lower() == 'w':  # user chooses to write an email
                 gmail.write_mail(api_key, service) #call to write mail function
+        elif userDecision.lower() == 'f': #user chooses to forward emails
+                gmail.forward_mail(api_key, service) #call to forward mail function
+        elif userDecision.lower() == 'c': #user chooses to copy an email
+                gmail.copy_mail(api_key, service) #call to copy mail function
         elif userDecision.lower() == 'q': 
                 print("Quitting program")
                 break; #exits program
