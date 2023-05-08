@@ -52,7 +52,7 @@ def generate_email(prompt, api_key):
 if __name__ == "__main__":
     #credentials creation and GMAIL API service building 
     #define the scopes 
-    SCOPES = ['https://mail.google.com/','https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.compose']
+    SCOPES = ['https://mail.google.com/']
 
     # Read the api_key from config.ini file
     config = configparser.ConfigParser()
