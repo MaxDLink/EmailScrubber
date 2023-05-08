@@ -6,7 +6,6 @@
 
 
 ## Current Tasks 
-# copy people on emails & add forwarding to emails 
 
 # user interface 
 
