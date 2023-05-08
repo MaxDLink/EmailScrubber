@@ -3,10 +3,13 @@ from email.mime.text import MIMEText
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from google.auth.transport.requests import Request
+
 import os
 import config #reads in api key from config.ini file
 import openai_helper #openai api function 
 import base64
+
 
 
 def build_service():
@@ -37,32 +40,110 @@ def build_service():
     return api_key, service
 
 
-def delete_mail(service): 
-     #prompt the user for the subject header for which email to delete 
-    subjectheader = input("Enter the subject header for email you want to delete: ")
-    query = "subject:" + subjectheader
-    result = service.users().messages().list(userId='me', q=query).execute()
-    messages = result.get('messages', [])
+def delete_mail(service, choice): 
 
-    # delete the email with the chosen subject header
-    if not messages:
-        print("No emails found with the subject header:", subjectheader)
+    if(choice.lower() == 's'): #delete by subject header 
+        #prompt the user for the subject header for which email to delete 
+        subjectheader = input("Enter the subject header for email you want to delete: ")
+        query = "subject:" + subjectheader
+        result = service.users().messages().list(userId='me', q=query).execute()
+        messages = result.get('messages', [])
 
-    else:
-        for message in messages:
-            message_id = message['id']
-            try:
-                #service.users().messages().modify(userId='me', id=message_id, body={'removeLabelIds': [], 'addLabelIds': ['TRASH']}).execute()
-                #print(f"Moved to trash bin - email with ID: {message_id}")
-                service.users().messages().delete(userId='me', id=message_id).execute()
+        # delete the email with the chosen subject header
+        if not messages:
+            print("No emails found with the subject header:", subjectheader)
 
-                #service.users().messages().delete(userId='me', id=message_id).execute()
-                print(f"Deleted email with ID: {message_id}")
-            except HttpError as error:
-                print(f"An error occurred while deleting the email with ID: {message_id}")
-                print(f"Error: {error}")
+        else:
+            for message in messages:
+                message_id = message['id']
+                try:
+                    #service.users().messages().modify(userId='me', id=message_id, body={'removeLabelIds': [], 'addLabelIds': ['TRASH']}).execute()
+                    #print(f"Moved to trash bin - email with ID: {message_id}")
+                    service.users().messages().delete(userId='me', id=message_id).execute()
 
-        print(f"Deleted {len(messages)} email(s) with the subject header: {subjectheader}")
+                    #service.users().messages().delete(userId='me', id=message_id).execute()
+                    print(f"Deleted email with ID: {message_id}")
+                except HttpError as error:
+                    print(f"An error occurred while deleting the email with ID: {message_id}")
+                    print(f"Error: {error}")
+
+            print(f"Deleted {len(messages)} email(s) with the subject header: {subjectheader}")
+    elif(choice.lower() == 'f'): #delete email by sender 
+        sender = input("Enter the sender's email address for the email(s) you want to delete: ")
+        query = "from:" + sender
+        result = service.users().messages().list(userId='me', q=query).execute()
+        messages = result.get('messages', [])
+
+        if not messages:
+            print("No emails found from the sender:", sender)
+        else:
+            for message in messages:
+                message_id = message['id']
+                try:
+                    service.users().messages().delete(userId='me', id=message_id).execute()
+                    print(f"Deleted email with ID: {message_id}")
+                except HttpError as error:
+                    print(f"An error occurred while deleting the email with ID: {message_id}")
+                    print(f"Error: {error}")
+            print(f"Deleted {len(messages)} email(s) from the sender: {sender}")
+    elif(choice.lower() == 'e'): #empty trash 
+        try:
+            messages = service.users().messages().list(userId='me', labelIds=['TRASH']).execute()
+            while 'messages' in messages:
+                for message in messages['messages']:
+                    service.users().messages().delete(userId='me', id=message['id']).execute()
+                    print(f"Deleted message with ID: {message['id']}")
+                page_token = messages.get('nextPageToken')
+                if page_token:
+                    messages = service.users().messages().list(userId='me', labelIds=['TRASH'], pageToken=page_token).execute()
+                else:
+                    break
+            print("Trash bin emptied successfully.")
+        except HttpError as error:
+            print("An error occurred while emptying the trash bin.")
+            print(f"Error: {error}")
+
+    elif(choice.lower() == 't'): # move all unstarred emails to the trash
+        query = "is:unread -is:starred"
+        page_token = None
+        trash_full = False
+
+        while True:
+            result = service.users().messages().list(userId='me', q=query, pageToken=page_token).execute()
+            messages = result.get('messages', [])
+
+            if not messages:
+                print("No unstarred emails found.")
+                break
+
+            for message in messages:
+                message_id = message['id']
+                try:
+                    service.users().messages().trash(userId='me', id=message_id).execute()
+                    print(f"Moved unstarred email with ID: {message_id} to trash")
+                except HttpError as error:
+                    print(f"An error occurred while moving the unstarred email with ID: {message_id} to trash")
+                    print(f"Error: {error}")
+                    trash_full = True
+                    break  # Exit the loop if the trash is full
+
+            if trash_full:
+                break  # Exit the loop if the trash is full
+
+            page_token = result.get('nextPageToken')
+            if not page_token:
+                break  # Exit the loop if there are no more pages
+
+        if trash_full:
+            deleteChoice = input("The trash bin has been completely filled up with unstarred emails. Would you like to continue moving unstarred emails to your trash bin with C, empty the trash bin with E, or return to the main menu with B?")
+            if deleteChoice.lower() == 'c':
+                delete_mail(service)  # Go back through with the same function and keep moving unstarred emails to trash
+            elif deleteChoice.lower() == 'e':
+                empty_trash(service)  # User chooses to empty the trash bin
+            elif deleteChoice.lower() == 'b':
+                print("Returning to the main menu.")  # Return user to the main menu
+            else:
+                print("Invalid choice. Please try again.")  # Invalid choice, return user to the main menu
 
 def write_mail(api_key, service):
     
