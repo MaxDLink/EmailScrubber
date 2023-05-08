@@ -50,11 +50,32 @@ def generate_email(prompt, api_key):
     return email
    
 if __name__ == "__main__":
+    #credentials creation and GMAIL API service building 
+    #define the scopes 
+    SCOPES = ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.compose']
 
     # Read the api_key from config.ini file
     config = configparser.ConfigParser()
     config.read('config.ini')
     api_key = config.get('DEFAULT', 'openai_api_key')
+
+    # Create credentials and Gmail API service once, before the while loop
+    creds = None
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            credentials_file = config.get('DEFAULT', 'gmail_cred_file')
+            flow = InstalledAppFlow.from_client_secrets_file(credentials_file, SCOPES)
+            creds = flow.run_local_server(port=0)
+
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
+
+    service = build('gmail', 'v1', credentials=creds)
 
     while True: 
         print("Welcome to EmailHelper!\n")
@@ -63,37 +84,6 @@ if __name__ == "__main__":
 
         if userDecision.lower() == 'a': #user chooses to organize their inbox
                 print("Organizing your inbox...\n")
-                # Load the credentials from the credentials file. Handles the Oath2 flow
-                creds = None  # Initialize creds to None to avoid creds not defined error 
-
-                # Read the config.ini file
-                config = configparser.ConfigParser()
-                config.read('config.ini')
-                credentials_file = config.get('DEFAULT', 'gmail_cred_file')
-
-                if os.path.exists('token.json'):
-                    #creds = Credentials.from_authorized_user_file('token.json', ['https://www.googleapis.com/auth/gmail.modify'])
-                    #creds = Credentials.from_authorized_user_file('token.json', ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.settings.basic'])
-                    creds = Credentials.from_authorized_user_file('token.json', ['https://www.googleapis.com/auth/gmail.modify'])
-                  
-
-                if not creds or not creds.valid:
-                    if creds and creds.expired and creds.refresh_token:
-                        creds.refresh(Request())
-                    else:
-                        flow = InstalledAppFlow.from_client_secrets_file(credentials_file, [
-                            'https://www.googleapis.com/auth/gmail.modify' #gives permission to delete emails 
-                        ])
-
-
-
-
-                        creds = flow.run_local_server(port=0)
-
-                    with open('token.json', 'w') as token:
-                        token.write(creds.to_json())
-
-                service = build('gmail', 'v1', credentials=creds)
 
                 #prompt the user for the subject header for which email to delete 
                 subjectheader = input("Enter the subject header for email you want to delete: ")
@@ -101,26 +91,31 @@ if __name__ == "__main__":
                 result = service.users().messages().list(userId='me', q=query).execute()
                 messages = result.get('messages', [])
 
-                #delete the email with the chosen subject header 
+                # delete the email with the chosen subject header
                 if not messages:
                     print("No emails found with the subject header:", subjectheader)
 
                 else:
                     for message in messages:
                         message_id = message['id']
-                        service.users().messages().delete(userId='me', id=message_id).execute()
-                        print(f"Deleted email with ID: {message_id}")
+                        try:
+                            service.users().messages().modify(userId='me', id=message_id, body={'removeLabelIds': [], 'addLabelIds': ['TRASH']}).execute()
+                            print(f"Moved to trash bin - email with ID: {message_id}")
+                            #service.users().messages().delete(userId='me', id=message_id).execute()
+
+                            #service.users().messages().delete(userId='me', id=message_id).execute()
+                            print(f"Deleted email with ID: {message_id}")
+                        except HttpError as error:
+                            print(f"An error occurred while deleting the email with ID: {message_id}")
+                            print(f"Error: {error}")
 
                     print(f"Deleted {len(messages)} email(s) with the subject header: {subjectheader}")
 
 
+
         elif userDecision.lower() == 'b':  # user chooses to write an email
                 prompt = input("Enter a prompt for the email: ")
-                # api_key = os.environ.get("OPENAI_API_KEY")
-                config = configparser.ConfigParser()
-                config.read('config.ini')
-                api_key = config.get('DEFAULT', 'openai_api_key')
-
+                
                 if api_key is None:
                     print("API key not found. Please set the 'OPENAI_API_KEY' environment variable.")
                     exit(1)
@@ -134,26 +129,6 @@ if __name__ == "__main__":
 
                 # Print the email content to the console
                 print("Generated email content:\n%s\n" % email_content)
-
-                # Create Gmail API client and authenticate
-                credentials = None
-                if os.path.exists('token.json'):
-                    credentials = Credentials.from_authorized_user_file('token.json', ['https://www.googleapis.com/auth/gmail.compose'])
-
-                if not credentials or not credentials.valid:
-                    if credentials and credentials.expired and credentials.refresh_token:
-                        credentials.refresh(Request())
-                    else:
-                        #credentials_file = config['DEFAULT']['gmail_cred_file']
-                        credentials_file = config['DEFAULT']['gmail_cred_file'].strip('"')
-
-                        flow = InstalledAppFlow.from_client_secrets_file(credentials_file, ['https://www.googleapis.com/auth/gmail.compose'])
-                        credentials = flow.run_local_server(port=0)
-
-                    with open('token.json', 'w') as token:
-                        token.write(credentials.to_json())
-
-                service = build('gmail', 'v1', credentials=credentials)
 
                 # Construct the email message
                 message = MIMEText(email_content)
