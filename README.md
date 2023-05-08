@@ -7,5 +7,13 @@
 
 ## Current Tasks 
 
-# Delete emails based on subject header and if emails are starred vs unstarred. 
+# Delete emails if emails are starred vs unstarred. 
+
+# move emails to trash bin 
 # copy people on emails & add forwarding to emails 
+
+# user interface 
+
+# Testing/bugs 
+
+# ship basic v1 
