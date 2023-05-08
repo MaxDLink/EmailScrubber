@@ -9806,3 +9806,52 @@ env/lib/python3.10/site-packages/yarl-1.9.2.dist-info/RECORD
 env/lib/python3.10/site-packages/yarl-1.9.2.dist-info/top_level.txt
 env/lib/python3.10/site-packages/yarl-1.9.2.dist-info/WHEEL
 myenv/bin/python3.9
+env/lib/python3.10/site-packages/pip/py.typed
+env/lib/python3.10/site-packages/pip/__pycache__/__init__.cpython-310 2.pyc
+env/lib/python3.10/site-packages/pip/__pycache__/__main__.cpython-310 2.pyc
+env/lib/python3.10/site-packages/pip/_internal/__init__.py
+env/lib/python3.10/site-packages/pip/_internal/main.py
+env/lib/python3.10/site-packages/pip/_internal/__pycache__/__init__.cpython-310 2.pyc
+env/lib/python3.10/site-packages/pip/_internal/__pycache__/main.cpython-310 2.pyc
+env/lib/python3.10/site-packages/pip/_internal/cli/__init__.py
+env/lib/python3.10/site-packages/pip/_internal/cli/command_context.py
+env/lib/python3.10/site-packages/pip/_internal/cli/__pycache__/__init__.cpython-310 2.pyc
+env/lib/python3.10/site-packages/pip/_internal/cli/__pycache__/status_codes.cpython-310 2.pyc
+env/lib/python3.10/site-packages/pip/_internal/distributions/__init__.py
+env/lib/python3.10/site-packages/pip/_internal/distributions/installed.py
+env/lib/python3.10/site-packages/pip/_internal/distributions/__pycache__/__init__.cpython-310 2.pyc
+env/lib/python3.10/site-packages/pip/_internal/index/__init__.py
+env/lib/python3.10/site-packages/pip/_internal/index/__pycache__/__init__.cpython-310 2.pyc
+env/lib/python3.10/site-packages/pip/_internal/metadata/importlib/__init__.py
+env/lib/python3.10/site-packages/pip/_internal/metadata/importlib/__pycache__/__init__.cpython-310 2.pyc
+env/lib/python3.10/site-packages/pip/_internal/models/__init__.py
+env/lib/python3.10/site-packages/pip/_internal/network/__init__.py
+env/lib/python3.10/site-packages/pip/_internal/network/__pycache__/__init__.cpython-310 2.pyc
+env/lib/python3.10/site-packages/pip/_internal/operations/__pycache__/__init__.cpython-310 2.pyc
+env/lib/python3.10/site-packages/pip/_internal/operations/build/__pycache__/__init__.cpython-310 2.pyc
+env/lib/python3.10/site-packages/pip/_internal/operations/install/__pycache__/__init__.cpython-310 2.pyc
+env/lib/python3.10/site-packages/pip/_internal/resolution/base.py
+env/lib/python3.10/site-packages/pip/_internal/resolution/legacy/__pycache__/__init__.cpython-310 2.pyc
+env/lib/python3.10/site-packages/pip/_internal/resolution/resolvelib/__pycache__/__init__.cpython-310 2.pyc
+env/lib/python3.10/site-packages/pip/_internal/utils/datetime.py
+env/lib/python3.10/site-packages/pip/_internal/utils/filetypes.py
+env/lib/python3.10/site-packages/pip/_internal/utils/inject_securetransport.py
+env/lib/python3.10/site-packages/pip/_internal/vcs/__init__.py
+env/lib/python3.10/site-packages/pip/_vendor/vendor 2.txt
+env/lib/python3.10/site-packages/pip/_vendor/cachecontrol/__init__.py
+env/lib/python3.10/site-packages/pip/_vendor/cachecontrol/compat.py
+env/lib/python3.10/site-packages/pip/_vendor/cachecontrol/wrapper.py
+env/lib/python3.10/site-packages/pip/_vendor/cachecontrol/caches/__init__.py
+env/lib/python3.10/site-packages/pip/_vendor/certifi/__init__ 2.py
+env/lib/python3.10/site-packages/pip/_vendor/certifi/__main__.py
+env/lib/python3.10/site-packages/pip/_vendor/chardet/version 2.py
+env/lib/python3.10/site-packages/pip/_vendor/colorama/__init__ 2.py
+env/lib/python3.10/site-packages/pip/_vendor/distlib/__init__ 2.py
+env/lib/python3.10/site-packages/pip/_vendor/distro/__main__.py
+env/lib/python3.10/site-packages/pip/_vendor/idna/__init__.py
+env/lib/python3.10/site-packages/pip/_vendor/idna/compat.py
+env/lib/python3.10/site-packages/pip/_vendor/idna/package_data 2.py
+env/lib/python3.10/site-packages/pip/_vendor/packaging/__about__.py
+env/lib/python3.10/site-packages/pip/_vendor/packaging/__init__.py
+env/lib/python3.10/site-packages/pip/_vendor/pkg_resources/py31compat.py
+env/lib/python3.10/site-packages/pip/_vendor/platformdirs/version 2.py
