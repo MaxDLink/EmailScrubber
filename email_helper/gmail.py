@@ -269,4 +269,39 @@ def forward_mail(api_key, service):
     print(f"Message forwarded to {forwarded_msg['to']}. Message Id: {sent_message['id']}")
     
 def copy_mail(api_key, service): 
-    print("copying email")
+    print("Copying email")
+
+    # Get the subject header of the email to copy
+    subject_header = input("Enter the subject header of the email you want to copy: ")
+    query = "subject:" + subject_header
+    result = service.users().messages().list(userId='me', q=query).execute()
+    messages = result.get('messages', [])
+
+    if not messages:
+        print("No emails found with the subject header:", subject_header)
+        return
+
+    # Choose the first email with the matching subject header
+    message_id = messages[0]['id']
+    original_message = service.users().messages().get(userId='me', id=message_id, format='raw').execute()
+
+    # Decode and parse the original email
+    msg_str = base64.urlsafe_b64decode(original_message['raw'].encode('ASCII'))
+    mime_msg = email.message_from_bytes(msg_str)
+
+    # Extract the text from the MIME message
+    text = ""
+    for part in mime_msg.walk():
+        if part.get_content_type() == 'text/plain':
+            text += part.get_payload()
+
+    # Set up the copied message
+    copied_msg = MIMEText(text)
+    copied_subject = input("Enter the subject header for the copied email (leave empty to use the original subject): ")
+    copied_msg['subject'] = copied_subject if copied_subject else mime_msg['subject']
+    copied_msg['to'] = input("Enter the email address to send the copied email to: ")
+
+    # Send the copied email
+    create_message = {'raw': base64.urlsafe_b64encode(copied_msg.as_bytes('utf-8')).decode()}
+    sent_message = service.users().messages().send(userId="me", body=create_message).execute()
+    print(f"Copied message sent to {copied_msg['to']}. Message Id: {sent_message['id']}")
