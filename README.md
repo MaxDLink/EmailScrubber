@@ -8,4 +8,4 @@
 ## Current Tasks 
 
 # Delete emails based on subject header and if emails are starred vs unstarred. 
-# copy people on emails 
+# copy people on emails & add forwarding to emails 
