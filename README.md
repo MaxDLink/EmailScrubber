@@ -6,10 +6,6 @@
 
 
 ## Current Tasks 
-
-# Delete emails if emails are starred vs unstarred. 
-
-# move emails to trash bin 
 # copy people on emails & add forwarding to emails 
 
 # user interface 
