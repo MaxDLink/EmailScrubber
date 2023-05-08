@@ -4,11 +4,14 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.auth.transport.requests import Request
+from email.mime.multipart import MIMEMultipart
 
 import os
 import config #reads in api key from config.ini file
 import openai_helper #openai api function 
 import base64
+import email 
+
 
 
 
@@ -227,4 +230,43 @@ def write_mail(api_key, service):
         else:
             print("Invalid action. Please choose A, B, C, or D.")
 
-        
+def forward_mail(api_key, service):
+    print("Forwarding email")
+
+    # Get the subject header of the email to forward
+    subject_header = input("Enter the subject header of the email you want to forward: ")
+    query = "subject:" + subject_header
+    result = service.users().messages().list(userId='me', q=query).execute()
+    messages = result.get('messages', [])
+
+    if not messages:
+        print("No emails found with the subject header:", subject_header)
+        return
+
+    # Choose the first email with the matching subject header
+    message_id = messages[0]['id']
+    original_message = service.users().messages().get(userId='me', id=message_id, format='raw').execute()
+
+    # Decode and parse the original email
+    msg_str = base64.urlsafe_b64decode(original_message['raw'].encode('ASCII'))
+    mime_msg = email.message_from_bytes(msg_str)
+
+    # Extract the text from the MIME message
+    text = ""
+    for part in mime_msg.walk():
+        if part.get_content_type() == 'text/plain':
+            text += part.get_payload()
+    
+    # Set up the forwarded message
+    forwarded_msg = MIMEText(text)
+    forwarded_subject = input("Enter the subject header for the forwarded email: ")
+    forwarded_msg['subject'] = forwarded_subject
+    forwarded_msg['to'] = input("Enter the email address to forward the email to: ")
+
+    # Forward the email
+    create_message = {'raw': base64.urlsafe_b64encode(forwarded_msg.as_bytes('utf-8')).decode()}
+    sent_message = service.users().messages().send(userId="me", body=create_message).execute()
+    print(f"Message forwarded to {forwarded_msg['to']}. Message Id: {sent_message['id']}")
+    
+def copy_mail(api_key, service): 
+    print("copying email")
