@@ -52,7 +52,7 @@ def generate_email(prompt, api_key):
 if __name__ == "__main__":
     #credentials creation and GMAIL API service building 
     #define the scopes 
-    SCOPES = ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.compose']
+    SCOPES = ['https://mail.google.com/','https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.compose']
 
     # Read the api_key from config.ini file
     config = configparser.ConfigParser()
@@ -99,9 +99,9 @@ if __name__ == "__main__":
                     for message in messages:
                         message_id = message['id']
                         try:
-                            service.users().messages().modify(userId='me', id=message_id, body={'removeLabelIds': [], 'addLabelIds': ['TRASH']}).execute()
-                            print(f"Moved to trash bin - email with ID: {message_id}")
-                            #service.users().messages().delete(userId='me', id=message_id).execute()
+                            #service.users().messages().modify(userId='me', id=message_id, body={'removeLabelIds': [], 'addLabelIds': ['TRASH']}).execute()
+                            #print(f"Moved to trash bin - email with ID: {message_id}")
+                            service.users().messages().delete(userId='me', id=message_id).execute()
 
                             #service.users().messages().delete(userId='me', id=message_id).execute()
                             print(f"Deleted email with ID: {message_id}")
