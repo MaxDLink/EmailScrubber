@@ -6,6 +6,7 @@
 
 ## Current Tasks  
 
+# fix forwarding and copying people on email losing email contents. Also send email to multiple people at once. 
 # user interface 
 
 # Testing/bugs 
