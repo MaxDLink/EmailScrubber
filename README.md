@@ -4,13 +4,14 @@
  # how do I make this an extension? 
 
 
-
 ## Current Tasks  
-# copy people on emails & add forwarding to emails 
 
 # user interface 
 
 # Testing/bugs 
+
+# ability to unsubscribe from gmails in mass? <--- Later 
+
 
 # ship basic v1 
 
