@@ -5,14 +5,20 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.auth.transport.requests import Request
 from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
+from urllib.parse import urlparse
+
 
 import os
 import config #reads in api key from config.ini file
 import openai_helper #openai api function 
 import base64
 import email 
+from email.mime.image import MIMEImage
+from email.mime.audio import MIMEAudio
 
-import PySimpleGUI as sg #importing the PySimpleGUI library 
+
 #TODO - add GUI for user to interact with program
 
 def build_service():
@@ -148,6 +154,34 @@ def delete_mail(service, choice):
             else:
                 print("Invalid choice. Please try again.")  # Invalid choice, return user to the main menu
 
+def create_attachments(service, path_or_url): 
+    print("Attachments")
+
+    # Check if the input is a URL or a file path
+    if urlparse(path_or_url).scheme in ['http', 'https']:
+        # The input is a URL, create a hyperlink
+        part = MIMEText('<a href="{}">{}</a>'.format(path_or_url, path_or_url), 'html')
+    else:
+        # The input is a file path
+        with open(path_or_url, 'rb') as f:
+            file_content = f.read()
+            
+        # Check the file type and create the corresponding MIME part
+        if path_or_url.endswith('.txt'):
+            part = MIMEText(file_content, 'plain')
+        elif path_or_url.endswith('.jpg') or path_or_url.endswith('.png'):
+            part = MIMEImage(file_content)
+        elif path_or_url.endswith('.mp3'):
+            part = MIMEAudio(file_content)
+        else:  # for .mp4 or other file types
+            part = MIMEBase('application', 'octet-stream')
+            part.set_payload(file_content)
+            encoders.encode_base64(part)
+
+        part.add_header('Content-Disposition', 'attachment', filename=path_or_url)
+    
+    return part
+
 def write_mail(api_key, service):
     
     prompt = input("Enter a prompt for the email: ")    
@@ -175,23 +209,41 @@ def write_mail(api_key, service):
 
     # Print the available actions and prompt the user to choose one
     while True:
-        action = input("Choose an action - A) send the email, B) modify the email, C) clear the email & rewrite, D) redisplay the email, E) Exit to main screen: ")
+        action = input("Choose an action - S) send the email, B) modify the email, C) clear the email & rewrite, D) redisplay the email, or E) Exit to main screen: ")
 
-        if action.lower() == 'a':
+        if action.lower() == 's':
+            # Create a multipart message
+            message = MIMEMultipart()
+
             # Set the email content to the modified email_content (if it was modified)
-            message.set_payload(payload=email_content)
+            message.attach(MIMEText(email_content, "html"))  # changing "plain" to "html" to allow links
 
-            print("\nMessage Body: " + str(message.get_payload()))
+            # Ask the user if they want to attach files or links
+            attach_files = input("Do you want to attach files or links? (yes/no) ")
+            if attach_files.lower() == "yes":
+                # Prompt the user for the file paths of the attachments or links
+                attachments = input("Enter the paths of the files to attach, separated by commas, or enter the links: ").split(',')
+
+                # Attach each file or URL to the email
+                for path_or_url in attachments:
+                    attachment_part = create_attachments(service, path_or_url.strip())  # strip to remove leading/trailing white space
+                    # Add a new line before each attachment
+                    message.attach(MIMEText("\n", 'plain'))
+
+                    #add the attachment to the email message
+                    message.attach(attachment_part)
+
+            print("\nMessage Body: " + str(message.get_payload(0).get_payload()))
+
             #Prompt the user for the subject header 
             subject = input("Enter the subject header: ")
-            message['subject'] = subject
+            message['Subject'] = subject
             # Prompt the user to enter the email address
             to_address = input("Enter the email address to send the email to: ")
-            message['to'] = to_address
+            message['To'] = to_address
             
             # Send the email to the entered email address
-            message['to'] = to_address
-            create_message = {'raw': base64.urlsafe_b64encode(message.as_bytes('utf-8')).decode()}
+            create_message = {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
             sent_message = service.users().messages().send(userId="me", body=create_message).execute()
             print("Message sent to %s. Message Id: %s" % (to_address, sent_message['id']))
             break
@@ -223,6 +275,10 @@ def write_mail(api_key, service):
         elif action.lower() == 'd':
             # Display email to console
             print("Current email content:\n%s\n" % email_content)
+        elif action.lower() == 'a': 
+            #Attach picture or video to email
+            print("Attaching picture or video to email\n")
+            attachments(service) #call to attachments function 
         elif action.lower() == 'e':
             # Delete the email
             print("Exiting to main screen")
@@ -230,7 +286,7 @@ def write_mail(api_key, service):
         else:
             print("Invalid action. Please choose A, B, C, or D.")
 
-def forward_mail(api_key, service):
+def forward_mail(service):
     print("Forwarding email")
 
     # Get the subject header of the email to forward
@@ -268,7 +324,7 @@ def forward_mail(api_key, service):
     sent_message = service.users().messages().send(userId="me", body=create_message).execute()
     print(f"Message forwarded to {forwarded_msg['to']}. Message Id: {sent_message['id']}")
     
-def copy_mail(api_key, service): 
+def copy_mail(service): 
     print("Copying email")
 
     # Get the subject header of the email to copy
