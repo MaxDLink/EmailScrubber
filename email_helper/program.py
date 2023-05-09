@@ -30,9 +30,9 @@ if __name__ == "__main__":
         elif userDecision.lower() == 'w':  # user chooses to write an email
                 gmail.write_mail(api_key, service) #call to write mail function
         elif userDecision.lower() == 'f': #user chooses to forward emails
-                gmail.forward_mail(api_key, service) #call to forward mail function
+                gmail.forward_mail(service) #call to forward mail function
         elif userDecision.lower() == 'c': #user chooses to copy an email
-                gmail.copy_mail(api_key, service) #call to copy mail function
+                gmail.copy_mail(service) #call to copy mail function
         elif userDecision.lower() == 'q': 
                 print("Quitting program")
                 break; #exits program
