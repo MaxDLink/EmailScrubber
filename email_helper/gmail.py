@@ -72,7 +72,7 @@ def delete_mail(service, choice):
 
             print(f"Deleted {len(messages)} email(s) with the subject header: {subjectheader}")
     elif(choice.lower() == 'f'): #delete email by sender 
-        sender = input("Enter the sender's email address for the email(s) you want to delete: ")
+        sender = input("Enter the sender's email address for the email(s) you want to move to the trash: ")
         query = "from:" + sender
         result = service.users().messages().list(userId='me', q=query).execute()
         messages = result.get('messages', [])
@@ -83,8 +83,8 @@ def delete_mail(service, choice):
             for message in messages:
                 message_id = message['id']
                 try:
-                    service.users().messages().delete(userId='me', id=message_id).execute()
-                    print(f"Deleted email with ID: {message_id}")
+                    service.users().messages().trash(userId='me', id=message_id).execute()
+                    print(f"Moved email with ID: {message_id} " + "to trash bin")
                 except HttpError as error:
                     print(f"An error occurred while deleting the email with ID: {message_id}")
                     print(f"Error: {error}")

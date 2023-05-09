@@ -14,7 +14,8 @@ if __name__ == "__main__":
 
         if userDecision.lower() == 'a': #user chooses to organize their inbox
                 print("Organizing your inbox...\n")
-                choice = input("You can delete emails based on subject header, sender, or unstarred status. Enter S for subject header, F for sender, E for emptying trash, or T for moving unstarred emails to trash: ")
+                print("You can move to the trash/delete emails based on: \n")
+                choice = input("subject header, sender, or unstarred status. Enter S for subject header, F for sender, E for emptying trash, or T for moving unstarred emails to trash: ")
                 if choice.lower() == 's': #user chooses to delete emails based on subject header
                     gmail.delete_mail(service,choice); #call to delete mail function 
                 elif choice.lower() == 'f': #user chooses to delete emails based on sender
