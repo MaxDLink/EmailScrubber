@@ -12,8 +12,8 @@ import openai_helper #openai api function
 import base64
 import email 
 
-
-
+import PySimpleGUI as sg #importing the PySimpleGUI library 
+#TODO - add GUI for user to interact with program
 
 def build_service():
     #credentials creation and GMAIL API service building 
