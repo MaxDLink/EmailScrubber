@@ -7,12 +7,12 @@
 
 ## Current Tasks 
 
-# add the ability to block gmail accounts? 
-
-# ability to unsubscribe from gmails in mass? 
 # user interface 
 
 # Testing/bugs 
+
+# ability to unsubscribe from gmails in mass? <--- Later 
+
 
 # ship basic v1 
 
