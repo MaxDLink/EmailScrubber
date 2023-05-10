@@ -8,9 +8,9 @@
 
 # have email_helper monitor the email inbox - label emails, move emails to trash, schedule appointments - all passively from no user input 
 
-# set up prompt engineering - model after randeer on git hub
+# set up prompt engineering - model after randeer on git hub: https://github.com/JushBJJ/Mr.-Ranedeer-AI-Tutor/blob/main/Mr_Ranedeer.json#L86 
 
-# model user interface after twitter extension 
+# model user interface after twitter extension:https://github.com/recalign/RecAlign/blob/main/README.md 
 
 # fix forwarding and copying people on email losing email contents. Also send email to multiple people at once. 
 # user interface 
