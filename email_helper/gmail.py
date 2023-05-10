@@ -158,8 +158,15 @@ def delete_mail(service, choice):
             else:
                 print("Invalid choice. Please try again.")  # Invalid choice, return user to the main menu
 
-def create_attachments(service, path_or_url): 
+def create_attachments(service, path_or_url):
     print("Attachments")
+
+    # Create a MIMEMultipart message to hold the email body and the attachment
+    msg = MIMEMultipart()
+
+    # # Add the email body
+    # body = input("Enter the email body: ")
+    # msg.attach(MIMEText(body, 'plain'))
 
     # Check if the input is a URL or a file path
     if urlparse(path_or_url).scheme in ['http', 'https']:
@@ -184,7 +191,10 @@ def create_attachments(service, path_or_url):
 
         part.add_header('Content-Disposition', 'attachment', filename=path_or_url)
     
-    return part
+    # Attach the part to the message
+    msg.attach(part)
+
+    return msg
 
 def write_mail(api_key, service):
     
@@ -362,8 +372,8 @@ def forward_mail(service):
     create_message = {'raw': base64.urlsafe_b64encode(forwarded_msg.as_bytes()).decode()}
     sent_message = service.users().messages().send(userId="me", body=create_message).execute()
     print(f"Message forwarded to {forwarded_msg['To']}. Message Id: {sent_message['id']}")
-    
-def copy_mail(service): 
+
+def copy_mail(service):
     print("Copying email")
 
     # Get the subject header of the email to copy
@@ -384,22 +394,47 @@ def copy_mail(service):
     msg_str = base64.urlsafe_b64decode(original_message['raw'].encode('ASCII'))
     mime_msg = email.message_from_bytes(msg_str)
 
-    # Extract the text from the MIME message
+    # Extract the text and HTML from the MIME message, and save any images or videos
     text = ""
+    html = ""
+    media_parts = []
     for part in mime_msg.walk():
         if part.get_content_type() == 'text/plain':
             text += part.get_payload()
+        elif part.get_content_type() == 'text/html':
+            html += part.get_payload()
+        elif part.get_content_type().startswith('image/') or part.get_content_type().startswith('video/'):
+            media_parts.append(part)
 
     # Set up the copied message
-    copied_msg = MIMEText(text)
+    copied_msg = MIMEMultipart('related')
+    if html:
+        msg_alternative = MIMEMultipart('alternative')
+        copied_msg.attach(msg_alternative)
+        msg_alternative.attach(MIMEText(html, "html"))
+    else:
+        copied_msg.attach(MIMEText(text, "plain"))
+
+    for part in media_parts:
+        if part.get_content_type().startswith('image/'):
+            msg_image = MIMEImage(part.get_payload(decode=True), part.get_content_subtype())
+        elif part.get_content_type().startswith('video/'):
+            msg_image = MIMEBase(part.get_content_type(), part.get_content_subtype())
+            msg_image.set_payload(part.get_payload(decode=True))
+        else:
+            continue
+        msg_image.add_header('Content-Disposition', 'inline', filename=part.get_filename())
+        msg_image.add_header('Content-ID', '<' + part.get_filename() + '>')
+        copied_msg.attach(msg_image)
+
     copied_subject = input("Enter the subject header for the copied email (leave empty to use the original subject): ")
-    copied_msg['subject'] = copied_subject if copied_subject else mime_msg['subject']
-    copied_msg['to'] = input("Enter the email address to send the copied email to: ")
+    copied_msg['Subject'] = copied_subject if copied_subject else mime_msg['subject']
+    copied_msg['To'] = input("Enter the email address to send the copied email to: ")
 
     # Send the copied email
-    create_message = {'raw': base64.urlsafe_b64encode(copied_msg.as_bytes('utf-8')).decode()}
+    create_message = {'raw': base64.urlsafe_b64encode(copied_msg.as_bytes()).decode()}
     sent_message = service.users().messages().send(userId="me", body=create_message).execute()
-    print(f"Copied message sent to {copied_msg['to']}. Message Id: {sent_message['id']}")
+    print(f"Copied message sent to {copied_msg['To']}. Message Id: {sent_message['id']}")
 
 def monitor_mail(api_key, service): 
     print("Monitoring email inbox")
