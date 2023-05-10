@@ -10,9 +10,12 @@ if __name__ == "__main__":
     while True: 
         print("Welcome to EmailHelper!\n")
 
-        userDecision = input("Would you like to A) Organize your email inbox, W) Write an email, F) Forward Emails, C) Copy an email, or Q) Quit? ")
+        userDecision = input("Would you like to email helper to M) Monitor email inbox passively, A) Organize your email inbox, W) Write an email, F) Forward Emails, C) Copy an email, or Q) Quit? ")
 
-        if userDecision.lower() == 'a': #user chooses to organize their inbox
+        if userDecision.lower() == 'm': #user chooses to monitor their inbox
+                print("Monitoring your inbox...\n")
+                gmail.monitor_mail(api_key, service)
+        elif userDecision.lower() == 'a': #user chooses to organize their inbox
                 print("Organizing your inbox...\n")
                 print("You can move to the trash/delete emails based on: \n")
                 choice = input("subject header, sender, or unstarred status. Enter S for subject header, F for sender, E for emptying trash, or T for moving unstarred emails to trash: ")
