@@ -8,7 +8,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
 from urllib.parse import urlparse
-
+from email.mime.image import MIMEImage
+from email.mime.audio import MIMEAudio
 
 import os
 import config #reads in api key from config.ini file
@@ -17,6 +18,9 @@ import base64
 import email 
 from email.mime.image import MIMEImage
 from email.mime.audio import MIMEAudio
+import binascii
+import chardet
+
 
 
 #TODO - add GUI for user to interact with program
@@ -303,26 +307,61 @@ def forward_mail(service):
     message_id = messages[0]['id']
     original_message = service.users().messages().get(userId='me', id=message_id, format='raw').execute()
 
-    # Decode and parse the original email
-    msg_str = base64.urlsafe_b64decode(original_message['raw'].encode('ASCII'))
-    mime_msg = email.message_from_bytes(msg_str)
+    # Check if 'raw' exists in the original message
+    if 'raw' not in original_message:
+        print("Error: No raw data in the email.")
+        return
 
-    # Extract the text from the MIME message
+    # Decode and parse the original email
+    raw_data = original_message['raw']
+    msg_bytes = base64.urlsafe_b64decode(raw_data)
+    encoding = chardet.detect(msg_bytes)['encoding']
+    msg_str = msg_bytes.decode(encoding)
+    mime_msg = email.message_from_string(msg_str)
+
+    # Extract the text and HTML from the MIME message, and save any images or videos
     text = ""
+    html = ""
+    media_parts = []
     for part in mime_msg.walk():
         if part.get_content_type() == 'text/plain':
             text += part.get_payload()
-    
+        elif part.get_content_type() == 'text/html':
+            html += part.get_payload()
+        elif part.get_content_type().startswith('image/') or part.get_content_type().startswith('video/'):
+            media_parts.append(part)
+
     # Set up the forwarded message
-    forwarded_msg = MIMEText(text)
-    forwarded_subject = input("Enter the subject header for the forwarded email: ")
-    forwarded_msg['subject'] = forwarded_subject
-    forwarded_msg['to'] = input("Enter the email address to forward the email to: ")
+    forwarded_msg = MIMEMultipart('related')
+    if html:
+        msg_alternative = MIMEMultipart('alternative')
+        forwarded_msg.attach(msg_alternative)
+        msg_alternative.attach(MIMEText(html, "html"))
+    else:
+        forwarded_msg.attach(MIMEText(text, "plain"))
+
+    for part in media_parts:
+        if part.get_content_type().startswith('image/'):
+            msg_image = MIMEImage(part.get_payload(decode=True), part.get_content_subtype())
+        elif part.get_content_type().startswith('video/'):
+            msg_image = MIMEBase(part.get_content_type(), part.get_content_subtype())
+            msg_image.set_payload(part.get_payload(decode=True))
+        else:
+            continue
+        msg_image.add_header('Content-Disposition', 'inline', filename=part.get_filename())
+        msg_image.add_header('Content-ID', '<' + part.get_filename() + '>')
+        forwarded_msg.attach(msg_image)
+
+    forwarded_subject = input("Enter the subject header for the forwarded email (leave blank to use the original subject): ")
+    if not forwarded_subject:
+        forwarded_subject = mime_msg['subject']
+    forwarded_msg['Subject'] = forwarded_subject
+    forwarded_msg['To'] = input("Enter the email address to forward the email to: ")
 
     # Forward the email
-    create_message = {'raw': base64.urlsafe_b64encode(forwarded_msg.as_bytes('utf-8')).decode()}
+    create_message = {'raw': base64.urlsafe_b64encode(forwarded_msg.as_bytes()).decode()}
     sent_message = service.users().messages().send(userId="me", body=create_message).execute()
-    print(f"Message forwarded to {forwarded_msg['to']}. Message Id: {sent_message['id']}")
+    print(f"Message forwarded to {forwarded_msg['To']}. Message Id: {sent_message['id']}")
     
 def copy_mail(service): 
     print("Copying email")
@@ -361,3 +400,6 @@ def copy_mail(service):
     create_message = {'raw': base64.urlsafe_b64encode(copied_msg.as_bytes('utf-8')).decode()}
     sent_message = service.users().messages().send(userId="me", body=create_message).execute()
     print(f"Copied message sent to {copied_msg['to']}. Message Id: {sent_message['id']}")
+
+def monitor_mail(api_key, service): 
+    print("Monitoring email inbox")
