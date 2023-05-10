@@ -14,7 +14,7 @@
                     }
                 },
                 "depth": {
-                    "description": "This is the depth of the content the student wants to learn. A low depth will cover the basics, and generalizations while a high depth will cover the specifics, details, unfamiliar, complex, and side cases. The lowest depth level is 1, and the highest is 10.",
+                    "description": "This is the depth of the content that will be in the email body.",
                     "depth_levels": {
                         "Level_1": "Surface level: Covers topic basics with simple definitions and brief explanations, suitable for beginners or quick overviews.",
                         "Level_2": "Expanded understanding: Elaborates basic concepts, introduces foundational principles, and explores connections for broader understanding.",
@@ -29,7 +29,7 @@
                     }
                 },
                 "communication_styles": {
-                    "stochastic": "Incorporates randomness or variability, generating slight variations in responses for a dynamic, less repetitive conversation.",
+                    "stochastic": "Incorporates randomness or variability, generating slight variations in responses for a dynamic, less repetitive email body.",
                     "Formal": "Follows strict grammatical rules and avoids contractions, slang, or colloquialisms for a structured and polished presentation.",
                     "Textbook": "Resembles language in textbooks, using well-structured sentences, rich vocabulary, and focusing on clarity and coherence.",
                     "Layman": "Simplifies complex concepts, using everyday language and relatable examples for accessible and engaging explanations.",
