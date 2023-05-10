@@ -12,7 +12,7 @@
 
 # model user interface after twitter extension:https://github.com/recalign/RecAlign/blob/main/README.md 
 
-# fix forwarding and copying people on email losing email contents. Also send email to multiple people at once. 
+# send email to multiple people at once. 
 # user interface 
 
 # Testing/bugs 
