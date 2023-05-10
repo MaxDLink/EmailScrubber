@@ -6,6 +6,12 @@
 
 ## Current Tasks  
 
+# have email_helper monitor the email inbox - label emails, move emails to trash, schedule appointments - all passively from no user input 
+
+# set up prompt engineering - model after randeer on git hub
+
+# model user interface after twitter extension 
+
 # fix forwarding and copying people on email losing email contents. Also send email to multiple people at once. 
 # user interface 
 
