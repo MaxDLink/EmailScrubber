@@ -192,15 +192,15 @@ def create_attachments(service, path_or_url):
 
     return msg
 
-def write_mail(api_key, service):
+def write_mail(api_key, service, parsedPreferences):
     
     prompt = input("Enter a prompt for the email: ")    
     if api_key is None:
         print("API key not found. Please set the 'OPENAI_API_KEY' environment variable.")
         exit(1)
 
-    # Generate initial email content with OpenAI
-    email_content = openai_helper.generate_email(prompt, api_key)
+    # Generate initial email content with OpenAI based on preferences 
+    email_content = openai_helper.generate_email(prompt, api_key, parsedPreferences)
 
     if email_content is None:
         print("Unable to generate email content.")
