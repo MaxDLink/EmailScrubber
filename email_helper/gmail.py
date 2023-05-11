@@ -5,15 +5,25 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.auth.transport.requests import Request
 from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
+from urllib.parse import urlparse
+from email.mime.image import MIMEImage
+from email.mime.audio import MIMEAudio
 
 import os
 import config #reads in api key from config.ini file
 import openai_helper #openai api function 
 import base64
 import email 
+from email.mime.image import MIMEImage
+from email.mime.audio import MIMEAudio
+import binascii
+import chardet
 
 
 
+#TODO - add GUI for user to interact with program
 
 def build_service():
     #credentials creation and GMAIL API service building 
@@ -148,6 +158,40 @@ def delete_mail(service, choice):
             else:
                 print("Invalid choice. Please try again.")  # Invalid choice, return user to the main menu
 
+def create_attachments(service, path_or_url):
+    print("Attachments")
+
+    # Create a MIMEMultipart message to hold the email body and the attachment
+    msg = MIMEMultipart()
+
+    # Check if the input is a URL or a file path
+    if urlparse(path_or_url).scheme in ['http', 'https']:
+        # The input is a URL, create a hyperlink
+        part = MIMEText('<a href="{}">{}</a>'.format(path_or_url, path_or_url), 'html')
+    else:
+        # The input is a file path
+        with open(path_or_url, 'rb') as f:
+            file_content = f.read()
+            
+        # Check the file type and create the corresponding MIME part
+        if path_or_url.endswith('.txt'):
+            part = MIMEText(file_content, 'plain')
+        elif path_or_url.endswith('.jpg') or path_or_url.endswith('.png'):
+            part = MIMEImage(file_content)
+        elif path_or_url.endswith('.mp3'):
+            part = MIMEAudio(file_content)
+        else:  # for .mp4 or other file types
+            part = MIMEBase('application', 'octet-stream')
+            part.set_payload(file_content)
+            encoders.encode_base64(part)
+
+        part.add_header('Content-Disposition', 'attachment', filename=path_or_url)
+    
+    # Attach the part to the message
+    msg.attach(part)
+
+    return msg
+
 def write_mail(api_key, service):
     
     prompt = input("Enter a prompt for the email: ")    
@@ -175,23 +219,41 @@ def write_mail(api_key, service):
 
     # Print the available actions and prompt the user to choose one
     while True:
-        action = input("Choose an action - A) send the email, B) modify the email, C) clear the email & rewrite, D) redisplay the email, E) Exit to main screen: ")
+        action = input("Choose an action - S) send the email, B) modify the email, C) clear the email & rewrite, D) redisplay the email, or E) Exit to main screen: ")
 
-        if action.lower() == 'a':
+        if action.lower() == 's':
+            # Create a multipart message
+            message = MIMEMultipart()
+
             # Set the email content to the modified email_content (if it was modified)
-            message.set_payload(payload=email_content)
+            message.attach(MIMEText(email_content, "html"))  # changing "plain" to "html" to allow links
 
-            print("\nMessage Body: " + str(message.get_payload()))
+            # Ask the user if they want to attach files or links
+            attach_files = input("Do you want to attach files or links? (yes/no) ")
+            if attach_files.lower() == "yes":
+                # Prompt the user for the file paths of the attachments or links
+                attachments = input("Enter the paths of the files to attach, separated by commas, or enter the links: ").split(',')
+
+                # Attach each file or URL to the email
+                for path_or_url in attachments:
+                    attachment_part = create_attachments(service, path_or_url.strip())  # strip to remove leading/trailing white space
+                    # Add a new line before each attachment
+                    message.attach(MIMEText("\n", 'plain'))
+
+                    #add the attachment to the email message
+                    message.attach(attachment_part)
+
+            print("\nMessage Body: " + str(message.get_payload(0).get_payload()))
+
             #Prompt the user for the subject header 
             subject = input("Enter the subject header: ")
-            message['subject'] = subject
+            message['Subject'] = subject
             # Prompt the user to enter the email address
             to_address = input("Enter the email address to send the email to: ")
-            message['to'] = to_address
+            message['To'] = to_address
             
             # Send the email to the entered email address
-            message['to'] = to_address
-            create_message = {'raw': base64.urlsafe_b64encode(message.as_bytes('utf-8')).decode()}
+            create_message = {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
             sent_message = service.users().messages().send(userId="me", body=create_message).execute()
             print("Message sent to %s. Message Id: %s" % (to_address, sent_message['id']))
             break
@@ -223,6 +285,10 @@ def write_mail(api_key, service):
         elif action.lower() == 'd':
             # Display email to console
             print("Current email content:\n%s\n" % email_content)
+        elif action.lower() == 'a': 
+            #Attach picture or video to email
+            print("Attaching picture or video to email\n")
+            attachments(service) #call to attachments function 
         elif action.lower() == 'e':
             # Delete the email
             print("Exiting to main screen")
@@ -230,7 +296,7 @@ def write_mail(api_key, service):
         else:
             print("Invalid action. Please choose A, B, C, or D.")
 
-def forward_mail(api_key, service):
+def forward_mail(service):
     print("Forwarding email")
 
     # Get the subject header of the email to forward
@@ -247,28 +313,63 @@ def forward_mail(api_key, service):
     message_id = messages[0]['id']
     original_message = service.users().messages().get(userId='me', id=message_id, format='raw').execute()
 
-    # Decode and parse the original email
-    msg_str = base64.urlsafe_b64decode(original_message['raw'].encode('ASCII'))
-    mime_msg = email.message_from_bytes(msg_str)
+    # Check if 'raw' exists in the original message
+    if 'raw' not in original_message:
+        print("Error: No raw data in the email.")
+        return
 
-    # Extract the text from the MIME message
+    # Decode and parse the original email
+    raw_data = original_message['raw']
+    msg_bytes = base64.urlsafe_b64decode(raw_data)
+    encoding = chardet.detect(msg_bytes)['encoding']
+    msg_str = msg_bytes.decode(encoding)
+    mime_msg = email.message_from_string(msg_str)
+
+    # Extract the text and HTML from the MIME message, and save any images or videos
     text = ""
+    html = ""
+    media_parts = []
     for part in mime_msg.walk():
         if part.get_content_type() == 'text/plain':
             text += part.get_payload()
-    
+        elif part.get_content_type() == 'text/html':
+            html += part.get_payload()
+        elif part.get_content_type().startswith('image/') or part.get_content_type().startswith('video/'):
+            media_parts.append(part)
+
     # Set up the forwarded message
-    forwarded_msg = MIMEText(text)
-    forwarded_subject = input("Enter the subject header for the forwarded email: ")
-    forwarded_msg['subject'] = forwarded_subject
-    forwarded_msg['to'] = input("Enter the email address to forward the email to: ")
+    forwarded_msg = MIMEMultipart('related')
+    if html:
+        msg_alternative = MIMEMultipart('alternative')
+        forwarded_msg.attach(msg_alternative)
+        msg_alternative.attach(MIMEText(html, "html"))
+    else:
+        forwarded_msg.attach(MIMEText(text, "plain"))
+
+    for part in media_parts:
+        if part.get_content_type().startswith('image/'):
+            msg_image = MIMEImage(part.get_payload(decode=True), part.get_content_subtype())
+        elif part.get_content_type().startswith('video/'):
+            msg_image = MIMEBase(part.get_content_type(), part.get_content_subtype())
+            msg_image.set_payload(part.get_payload(decode=True))
+        else:
+            continue
+        msg_image.add_header('Content-Disposition', 'inline', filename=part.get_filename())
+        msg_image.add_header('Content-ID', '<' + part.get_filename() + '>')
+        forwarded_msg.attach(msg_image)
+
+    forwarded_subject = input("Enter the subject header for the forwarded email (leave blank to use the original subject): ")
+    if not forwarded_subject:
+        forwarded_subject = mime_msg['subject']
+    forwarded_msg['Subject'] = forwarded_subject
+    forwarded_msg['To'] = input("Enter the email address to forward the email to: ")
 
     # Forward the email
-    create_message = {'raw': base64.urlsafe_b64encode(forwarded_msg.as_bytes('utf-8')).decode()}
+    create_message = {'raw': base64.urlsafe_b64encode(forwarded_msg.as_bytes()).decode()}
     sent_message = service.users().messages().send(userId="me", body=create_message).execute()
-    print(f"Message forwarded to {forwarded_msg['to']}. Message Id: {sent_message['id']}")
-    
-def copy_mail(api_key, service): 
+    print(f"Message forwarded to {forwarded_msg['To']}. Message Id: {sent_message['id']}")
+
+def copy_mail(service):
     print("Copying email")
 
     # Get the subject header of the email to copy
@@ -289,19 +390,47 @@ def copy_mail(api_key, service):
     msg_str = base64.urlsafe_b64decode(original_message['raw'].encode('ASCII'))
     mime_msg = email.message_from_bytes(msg_str)
 
-    # Extract the text from the MIME message
+    # Extract the text and HTML from the MIME message, and save any images or videos
     text = ""
+    html = ""
+    media_parts = []
     for part in mime_msg.walk():
         if part.get_content_type() == 'text/plain':
             text += part.get_payload()
+        elif part.get_content_type() == 'text/html':
+            html += part.get_payload()
+        elif part.get_content_type().startswith('image/') or part.get_content_type().startswith('video/'):
+            media_parts.append(part)
 
     # Set up the copied message
-    copied_msg = MIMEText(text)
+    copied_msg = MIMEMultipart('related')
+    if html:
+        msg_alternative = MIMEMultipart('alternative')
+        copied_msg.attach(msg_alternative)
+        msg_alternative.attach(MIMEText(html, "html"))
+    else:
+        copied_msg.attach(MIMEText(text, "plain"))
+
+    for part in media_parts:
+        if part.get_content_type().startswith('image/'):
+            msg_image = MIMEImage(part.get_payload(decode=True), part.get_content_subtype())
+        elif part.get_content_type().startswith('video/'):
+            msg_image = MIMEBase(part.get_content_type(), part.get_content_subtype())
+            msg_image.set_payload(part.get_payload(decode=True))
+        else:
+            continue
+        msg_image.add_header('Content-Disposition', 'inline', filename=part.get_filename())
+        msg_image.add_header('Content-ID', '<' + part.get_filename() + '>')
+        copied_msg.attach(msg_image)
+
     copied_subject = input("Enter the subject header for the copied email (leave empty to use the original subject): ")
-    copied_msg['subject'] = copied_subject if copied_subject else mime_msg['subject']
-    copied_msg['to'] = input("Enter the email address to send the copied email to: ")
+    copied_msg['Subject'] = copied_subject if copied_subject else mime_msg['subject']
+    copied_msg['To'] = input("Enter the email address to send the copied email to: ")
 
     # Send the copied email
-    create_message = {'raw': base64.urlsafe_b64encode(copied_msg.as_bytes('utf-8')).decode()}
+    create_message = {'raw': base64.urlsafe_b64encode(copied_msg.as_bytes()).decode()}
     sent_message = service.users().messages().send(userId="me", body=create_message).execute()
-    print(f"Copied message sent to {copied_msg['to']}. Message Id: {sent_message['id']}")
+    print(f"Copied message sent to {copied_msg['To']}. Message Id: {sent_message['id']}")
+
+def monitor_mail(api_key, service): 
+    print("Monitoring email inbox")
