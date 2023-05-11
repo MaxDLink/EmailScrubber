@@ -8,7 +8,7 @@
 
 # set up prompt engineering - model after randeer on git hub: https://github.com/JushBJJ/Mr.-Ranedeer-AI-Tutor/blob/main/Mr_Ranedeer.json#L86 
 
-# refine the prompt with the ChatGPT conversational model. Use ChatGPT 4? Have setting the Preferences be optional. Design the preferences to be saved across user sessions. Determine if AgentGPT is in usage while you just write emails. 
+# refine the prompt with the ChatGPT conversational model. Use ChatGPT 4? Have setting the Preferences be optional. Design the preferences to be saved across user sessions. Determine if AgentGPT is in usage while you just write emails. Must be able to run through write function and modify function multiple times once preferences are preserved. 
 # have email_helper monitor the email inbox - label emails, move emails to trash, schedule appointments - all passively from no user input 
 
 
