@@ -164,10 +164,6 @@ def create_attachments(service, path_or_url):
     # Create a MIMEMultipart message to hold the email body and the attachment
     msg = MIMEMultipart()
 
-    # # Add the email body
-    # body = input("Enter the email body: ")
-    # msg.attach(MIMEText(body, 'plain'))
-
     # Check if the input is a URL or a file path
     if urlparse(path_or_url).scheme in ['http', 'https']:
         # The input is a URL, create a hyperlink
