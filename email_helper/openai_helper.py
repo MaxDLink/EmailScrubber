@@ -2,12 +2,12 @@ import openai
 
 model_engine = "text-davinci-002"
 
-def generate_email(prompt, api_key, preferences):
+def generate_email(prompt, api_key, parsedPreferences):
     # Set up OpenAI API client
     openai.api_key = api_key
     # model_engine = "text-davinci-002"
 
-    # Generate email with OpenAI GPT-3
+    # Generate email with OpenAI GPT-3 #TODO - how do you handle prompt engineering here? 
     try:
         response = openai.Completion.create(
             engine=model_engine,
