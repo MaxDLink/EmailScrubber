@@ -2,7 +2,7 @@ import openai
 
 model_engine = "text-davinci-002"
 
-def generate_email(prompt, api_key):
+def generate_email(prompt, api_key, preferences):
     # Set up OpenAI API client
     openai.api_key = api_key
     # model_engine = "text-davinci-002"
