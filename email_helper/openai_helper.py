@@ -7,11 +7,14 @@ def generate_email(prompt, api_key, finalizedPreferences):
     openai.api_key = api_key
     # model_engine = "text-davinci-002"
 
+    # Append the finalizedPreferences to the prompt
+    finalizedPrompt = "Please follow these preferences: " + finalizedPreferences + "\n" + "Here is the email I would like you to write based on the above preferences:" + "\n" + prompt
+        
     # Generate email with OpenAI GPT-3 #TODO - how do you handle prompt engineering here? 
     try:
         response = openai.Completion.create(
             engine=model_engine,
-            prompt=prompt,
+            prompt=finalizedPrompt,
             max_tokens=1024,
             n=1,
             stop=None,
