@@ -7,11 +7,12 @@ import userPreferences #function for parsing the .json file for user preferences
 if __name__ == "__main__":
 
     #parses preferences from behavior.json file
-    preferences = userPreferences.parse_preferences('behavior.json')
+    preferences, features = userPreferences.parse_preferences('behavior.json')
     #print out the parsed preferences
-    print(preferences)
+#     print("Print prefernces and features: \n")
+#     print(preferences, features)
     #update the preferences based on user input
-    updated_preferences = userPreferences.set_prompts_for_preferences(preferences)
+    updated_preferences = userPreferences.set_prompts_for_preferences(preferences, features)
     #print out the updated preferences
     print(updated_preferences)
     
