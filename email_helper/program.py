@@ -8,13 +8,14 @@ if __name__ == "__main__":
 
     #parses preferences from behavior.json file
     preferences, features = userPreferences.parse_preferences('behavior.json')
-    #print out the parsed preferences
-#     print("Print prefernces and features: \n")
-#     print(preferences, features)
+    print(preferences, features)
     #update the preferences based on user input
     updated_preferences = userPreferences.set_prompts_for_preferences(preferences, features)
     #print out the updated preferences
     print(updated_preferences)
+    
+    #finalized preferences will be given to the openai_helper.py file
+    finalizedPreferences = preferences + features + updated_preferences
     
     # Credentials creation and GMAIL API service building
     api_key, service = gmail.build_service()
@@ -44,7 +45,7 @@ if __name__ == "__main__":
 
 
         elif userDecision.lower() == 'w':  # user chooses to write an email
-                gmail.write_mail(api_key, service, parsedPreferences) #call to write mail function
+                gmail.write_mail(api_key, service, finalizedPreferences) #call to write mail function
         elif userDecision.lower() == 'f': #user chooses to forward emails
                 gmail.forward_mail(service) #call to forward mail function
         elif userDecision.lower() == 'c': #user chooses to copy an email
