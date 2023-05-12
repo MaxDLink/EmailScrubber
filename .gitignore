@@ -9863,3 +9863,4 @@ env/lib/python3.10/site-packages/pip/_vendor/packaging/__about__.py
 env/lib/python3.10/site-packages/pip/_vendor/packaging/__init__.py
 env/lib/python3.10/site-packages/pip/_vendor/pkg_resources/py31compat.py
 env/lib/python3.10/site-packages/pip/_vendor/platformdirs/version 2.py
+email_helper/user_preferences.json
