@@ -6,23 +6,13 @@ import userPreferences #function for parsing the .json file for user preferences
 import json #handles json.dumps 
 
 if __name__ == "__main__":
-
-        # Parses preferences from behavior.json file
-        preferences, features = userPreferences.parse_preferences('behavior.json')
-        print(preferences, features)
-
-        # Update the preferences based on user input
-        updated_preferences = userPreferences.set_prompts_for_preferences(preferences, features)
-        # Print out the updated preferences
-        print(updated_preferences)
-
-        # Convert preferences, features, and updated_preferences to strings
-        preferences_str = json.dumps(preferences)
-        features_str = json.dumps(features)
-        updated_preferences_str = json.dumps(updated_preferences)
-
-        # Concatenate the preference strings to create finalizedPreferences
-        finalizedPreferences = preferences_str + features_str + updated_preferences_str
+        setPref = input("Would you like to set your preferences? Y/N: ")
+        if(setPref.lower() == 'y'):
+                finalizedPreferences = userPreferences.set_preferences(setPref) #call to set_preferences function in userPreferences.py
+        else:
+                finalizedPreferences = userPreferences.set_preferences(setPref) #None value for finalizedPreferences because user did not set them 
+                
+        print("FINALIZED PREFERENCES: \n" + finalizedPreferences + "\n")
 
         # Credentials creation and GMAIL API service building
         api_key, service = gmail.build_service()
