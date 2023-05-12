@@ -1,4 +1,5 @@
 import json
+import os
 
 # Parses the preferences .json file
 def parse_preferences(file): 
@@ -70,3 +71,42 @@ def set_prompts_for_preferences(preferences, features):
     preferences["language"] = new_language
 
     return preferences
+
+def set_preferences(choice):
+
+    
+    if(choice.lower() == 'y'): #if the user wants to set preferences 
+        print("Setting preferences...")
+        # Parses preferences from behavior.json file
+        preferences, features = parse_preferences('behavior.json')
+
+        # Update the preferences based on user input
+        updated_preferences = set_prompts_for_preferences(preferences, features)
+        # Convert preferences, features, and updated_preferences to strings
+        preferences_str = json.dumps(preferences)
+        features_str = json.dumps(features)
+        updated_preferences_str = json.dumps(updated_preferences)
+        
+        # Concatenate the preference strings to create finalizedPreferences
+        finalizedPreferences = preferences_str + features_str + updated_preferences_str
+        save_preferences(finalizedPreferences, 'user_preferences.json') #save the preferences to a json file
+    else: #if the user wants to load saved preferences
+        print("Loading preferences...")
+        prefs = load_preferences('user_preferences.json')
+        prefs_str = json.dumps(prefs)
+        finalizedPreferences = prefs_str
+        
+    return finalizedPreferences
+
+# Save preferences to a JSON file
+def save_preferences(preferences, file):
+    with open(file, 'w') as f:
+        json.dump(preferences, f)
+
+# Load preferences from a JSON file
+def load_preferences(file):
+    if os.path.exists(file):
+        with open(file, 'r') as f:
+            return json.load(f)
+    else:
+        return None
