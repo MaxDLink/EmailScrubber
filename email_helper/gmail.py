@@ -267,7 +267,7 @@ def write_mail(api_key, service, finalizedPreferences):
 
             # Regenerate initial email content with user suggested changes 
             # Update the email content with the user's changes
-            email_content = openai_helper.generate_email("Take this email: " + email_content + "\n and change it to: " + suggestedChanges, api_key)
+            email_content = openai_helper.generate_email("Take this email: " + email_content + "\n and change it to: " + suggestedChanges, api_key, finalizedPreferences)
             print("Modified email content:\n%s\n" % email_content)
 
 
@@ -276,7 +276,7 @@ def write_mail(api_key, service, finalizedPreferences):
         # Regenerate email content
             print("Clearing Email Content")
             prompt = input("Enter a prompt for the email: ")
-            email_content = openai_helper.generate_email(prompt, api_key)
+            email_content = openai_helper.generate_email(prompt, api_key, finalizedPreferences)
             if email_content is None:
                 print("Unable to generate email content.")
                 exit(1)
