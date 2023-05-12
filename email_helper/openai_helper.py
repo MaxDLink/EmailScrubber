@@ -1,6 +1,6 @@
 import openai
 
-def generate_response(prompt, model="gpt-3.5-turbo"):
+def generate_response(prompt, model="gpt-3.5-turbo"): #gpt-3.5-turbo
     response = openai.ChatCompletion.create(
         model=model,
         messages=[
@@ -15,7 +15,7 @@ def generate_email(prompt, api_key, finalizedPreferences):
     openai.api_key = api_key
 
     # Append the finalizedPreferences to the prompt
-    finalizedPrompt = "Please follow these preferences: " + finalizedPreferences + "\n" + "Here is the email I would like you to write based on the above preferences:" + "\n" + prompt
+    finalizedPrompt = "Please follow these preferences: " + finalizedPreferences + " If emojis are enabled then please use emojis." + "\n" + "Here is the email I would like you to write based on the above preferences:" + "\n" + prompt
     print("FINALIZED PROMPT: \n" + finalizedPrompt)
 
     # Generate response with ChatGPT
