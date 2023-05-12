@@ -6,9 +6,12 @@
 
 ## Current Tasks  
 
+# set up prompt engineering - model after randeer on git hub: https://github.com/JushBJJ/Mr.-Ranedeer-AI-Tutor/blob/main/Mr_Ranedeer.json#L86 
+
+# refine the prompt with the ChatGPT conversational model. Use ChatGPT 4? Determine if AgentGPT is in usage while you just write emails. Also either have ChatGPT write the prompt for you or do not have ChatGPT write the prompt. Need to be able to switch languages. 
 # have email_helper monitor the email inbox - label emails, move emails to trash, schedule appointments - all passively from no user input 
 
-# set up prompt engineering - model after randeer on git hub: https://github.com/JushBJJ/Mr.-Ranedeer-AI-Tutor/blob/main/Mr_Ranedeer.json#L86 
+
 
 # model user interface after twitter extension:https://github.com/recalign/RecAlign/blob/main/README.md 
 

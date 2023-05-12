@@ -1,31 +1,35 @@
 import openai
 
-model_engine = "text-davinci-002"
+def generate_response(prompt, model="gpt-3.5-turbo"): #gpt-3.5-turbo
+    response = openai.ChatCompletion.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+        ],
+    )
+    
+    return response['choices'][0]['message']['content'].strip()
 
-def generate_email(prompt, api_key):
-    # Set up OpenAI API client
+def generate_email(prompt, api_key, finalizedPreferences):
     openai.api_key = api_key
-    # model_engine = "text-davinci-002"
 
-    # Generate email with OpenAI GPT-3
+    # Append the finalizedPreferences to the prompt
+    finalizedPrompt = "Please follow these preferences: " + finalizedPreferences + " If emojis are enabled then please use emojis." + "\n" + "Here is the email I would like you to write based on the above preferences:" + "\n" + prompt
+    #print("FINALIZED PROMPT: \n" + finalizedPrompt)
+
+    # Generate response with ChatGPT
     try:
-        response = openai.Completion.create(
-            engine=model_engine,
-            prompt=prompt,
-            max_tokens=1024,
-            n=1,
-            stop=None,
-            temperature=0.7,
-        )
+        response = generate_response(finalizedPrompt)
     except openai.error.APIError:
-        print("Error generating email with OpenAI.")
+        print("Error generating response with ChatGPT.")
         return None
 
-    # Extract email from OpenAI response
+    # Extract email from the response
     try:
-        email = response.choices[0].text.strip()
+        email = response.strip()
     except IndexError:
-        print("Error extracting email from OpenAI response.")
+        print("Error extracting email from ChatGPT response.")
         return None
 
     return email
