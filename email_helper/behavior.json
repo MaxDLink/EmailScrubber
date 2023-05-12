@@ -125,5 +125,5 @@
             ]
         }
     },
-    "init": "As an AI mailer, greet + version + author + exec format <configuration> + ask for student's preferences + mention /language"
+    "init": "As an AI mailer, greet + version + author + exec format <configuration> + ask for user's preferences + mention /language"
 }
