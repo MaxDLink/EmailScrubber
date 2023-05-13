@@ -432,5 +432,34 @@ def copy_mail(service):
     sent_message = service.users().messages().send(userId="me", body=create_message).execute()
     print(f"Copied message sent to {copied_msg['To']}. Message Id: {sent_message['id']}")
 
-def monitor_mail(api_key, service): 
+def monitor_mail(service, label_name="AgentGPT Label"): 
     print("Monitoring email inbox")
+
+    # Create a new label or fetch the id of an existing label
+    label_id = None
+    labels = service.users().labels().list(userId='me').execute()
+    for label in labels['labels']:
+        if label['name'] == label_name:
+            label_id = label['id']
+            break
+
+    if not label_id:
+        # Create a new label
+        label = service.users().labels().create(userId='me', body={
+            "name": label_name,
+            "messageListVisibility": "show",
+            "labelListVisibility": "labelShow",
+        }).execute()
+        label_id = label['id']
+
+    # Fetch unread messages
+    result = service.users().messages().list(userId='me', q="is:unread").execute()
+    messages = result.get('messages', [])
+
+    # Apply the label to the messages
+    for message in messages:
+        service.users().messages().modify(userId='me', id=message['id'], body={
+            'addLabelIds': [label_id],
+        }).execute()
+
+    print(f"Labeled {len(messages)} new unread emails with '{label_name}'")
